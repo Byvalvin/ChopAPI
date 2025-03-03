@@ -22,3 +22,10 @@ package-lock.json
 
 # Environment files
 .env
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE settings
+.vscode/
+.idea/

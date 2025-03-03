@@ -1,0 +1,10 @@
+
+- cd /path/to/your/project
+- git init
+- git add .
+- git commit -m "Initial commit"
+- Create a GitHub Repository on GitHub
+- Add the Remote Repository: git remote add origin https://github.com/yourusername/your-repository-name.git
+- git push -u origin main, OR LOOK AT WHAT GITHUB SAYS TO DO
+
+
