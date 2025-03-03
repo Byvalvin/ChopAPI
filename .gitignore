@@ -1,0 +1,24 @@
+# Node.js dependencies
+# Ignore npm config file (if it's project-specific), ignore custom npm caching
+node_modules/
+npmCACHE
+.npmrc
+
+# Dist folder (compiled files from TypeScript)
+dist/
+
+# Jest coverage reports
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Operating system files
+.DS_Store
+
+# NPM package files
+package-lock.json
+
+# Environment files
+.env

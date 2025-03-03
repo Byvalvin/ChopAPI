@@ -1,0 +1,35 @@
+Sequelize(NodeJS Object Relational Mapping, ORM)
+PostgreSQL
+Supabase
+NodeJS
+npm
+Typescript
+Jest
+Nodemon
+Express
+
+
+npx tsc
+npx tsc --init
+npx tsc --version
+
+npm init -y
+npm install typescript ts-node express @types/express
+npm config set cache ./local/scratch/Chop/npmCACHE --global
+npm config get cache
+npm install --save-dev
+
+//SEQUELISEING WITH TS
+npm install sequelize pg pg-hstore
+
+npm install @types/sequelize
+
+
+https://orm.drizzle.team/docs/migrate/migrate-from-sequelize Sequelize To Drizzle
+
+ORMS
+mikroORM: https://mikro-orm.io/
+drizzle
+prisma
+sequelize
+typeORM: https://typeorm.io/

@@ -1,0 +1,14 @@
+Chop/
+├── src/
+│   ├── controllers/
+│   │   ├── recipeController.ts
+│   ├── routes/
+│   │   ├── recipes.ts
+│   ├── app.ts
+│   └── server.ts
+├── node_modules/
+├── dist/              # Compiled JavaScript will go here after running `tsc`
+├── package.json
+├── tsconfig.json
+└── package-lock.json
+

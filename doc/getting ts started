@@ -1,0 +1,114 @@
+npm init -y
+init project for package.json(kinda like a virtual env)
+
+npm install typescript ts-node express @types/express
+This will install:
+
+    typescript: The TypeScript compiler.
+    ts-node: A TypeScript execution engine to run TypeScript files directly.
+    express: For setting up the API server.
+    @types/express: Type definitions for Express (helps TypeScript understand Express types).
+    
+
+need this each time?
+npx tsc --init
+
+
+
+
+Great! You have successfully installed TypeScript and generated your `tsconfig.json` file. 🎉
+
+Now, let's review and make sure everything is set up for your TypeScript development.
+
+### Next Steps:
+
+#### 1. **Check the `tsconfig.json` File**
+Your `tsconfig.json` file has been generated with the following content (from the output above). Here's a quick review of the options:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+These settings look pretty good, especially the `strict` mode, which enables strict type checking in TypeScript. If you want to ensure compatibility with modern JavaScript, it's okay to leave the `target` set to `es2016`, but if you want a more up-to-date version of JavaScript (like ES2020 or ESNext), you can adjust that as well.
+
+You can also customize the `module`, `target`, and other options based on the environment where your code will run (e.g., Node.js, browser).
+
+#### 2. **Create TypeScript Files**
+Now that TypeScript is set up, you can start creating your TypeScript files.
+
+For example, within `src/`, you can start creating your controllers, routes, and other components:
+
+- **src/controllers/recipeController.ts** (for handling recipes logic)
+- **src/routes/recipes.ts** (for defining your routes)
+- **src/app.ts** (for the main app setup)
+- **src/server.ts** (for setting up and running your server)
+
+### 3. **Add a Start Script in `package.json`**
+
+You need a script to compile and run your TypeScript code. Add the following to your `package.json` file under `"scripts"`:
+
+```json
+"scripts": {
+  "start": "tsc && node dist/server.js"
+}
+```
+
+This script will:
+1. Compile your TypeScript files into JavaScript using the `tsc` command.
+2. Run the `dist/server.js` file (the compiled JavaScript) with Node.js.
+
+#### 4. **Start Writing Code**
+
+Here’s a basic example of what you could start with for your app's structure:
+
+**src/app.ts:**
+
+```typescript
+import express from 'express';
+
+const app = express();
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Add your routes here
+import recipeRoutes from './routes/recipes';
+app.use('/api/recipes', recipeRoutes);
+
+export default app;
+```
+
+**src/server.ts:**
+
+```typescript
+import app from './app';
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+```
+
+#### 5. **Run the App**
+After you’ve added your code, you can run your app using:
+
+```bash
+npm start
+```
+
+This will compile TypeScript files and start the server.
+
+### Next Up: Set up Routes, Controllers, and Database
+Once you have this basic setup working, you can start implementing the specific routes and controllers, and then integrate the PostgreSQL database.
+
+Let me know when you're ready to proceed with routes, or if you have any more questions about the setup!

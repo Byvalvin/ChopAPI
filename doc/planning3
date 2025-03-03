@@ -1,0 +1,31 @@
+Summary of All Endpoints & Query Parameters
+Recipes Endpoints:
+    GET /chop/api/recipes: Query parameters: Filter by category, sub_category, nation, region, sort, limit, page.
+    POST /chop/api/recipes: Request body with new recipe data.
+    GET /chop/api/recipes/{id}: No query parameters.
+    PUT /chop/api/recipes/{id}: Request body with updated recipe data.
+    GET /chop/api/recipes/{dish}: Query parameters: Filter by category, sub_category, nation, region.
+    GET /chop/api/recipes/{id}/ingredients: No query parameters.
+    PUT /chop/api/recipes/{id}/ingredients: Request body with updated ingredients.
+    PATCH /chop/api/recipes/{id}/ingredients: Request body with updated ingredients.
+    GET /chop/api/recipes/{id}/images: No query parameters.
+    POST /chop/api/recipes/{id}/images: Request body with image data.
+
+Ingredients Endpoints:
+    GET /chop/api/ingredients/{ingredient_name}: Query parameters: sort.
+    GET /chop/api/ingredients/{ingredient_name}/recipes: Query parameters: Filter by category, sub_category, nation, region, sort, limit, page.
+
+Nations Endpoints:
+    GET /chop/api/nations: Query parameters: sort. 
+    GET /chop/api/nations/{nation}/recipes: Query parameters: Filter by category, sub_category, sort, limit, page.
+
+Regions Endpoints:
+    GET /chop/api/regions: sort.
+    GET /chop/api/regions/{region}/recipes: Query parameters: Filter by category, sub_category, sort, limit, page.
+    GET /chop/api/regions/{region}/nations: Query parameters: sort.
+
+Categories Endpoints
+    GET /chop/api/categories: Description: Fetch all available categories (e.g., main, appetizer, snack, etc.). Query parameters: sort.
+
+Subcategories Endpoints
+    GET /chop/api/subcategories: Description: Fetch all available sub-categories (e.g., vegan, vegetarian, gluten-free). Query parameters: sort.

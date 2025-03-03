@@ -1,0 +1,53 @@
+chop/api/
+
+recipes, includes est cost
+ingredients
+nation
+region
+category(main, appetizer, snack, street-food) basically anything thjat describes the occasion/when the dish is eaten
+sub-category(vegan, vegetarian, gluten-free, spicy, ) basically any important info related to allergies or diets or dietary restrictions or potential hazards
+
+RECIPES
+chop/api/recipes
+GET: all recipes
+POST: add new recipe
+
+chop/api/recipes/{id}
+GET: recipe by id
+PUT: update recipe by id
+
+chop/api/recipes/{dish}
+GET: all recipes with dish name
+
+chop/api/recipes/{id}/ingredients
+GET: only the ingredients for a recipe by id
+PUT: update only the ingredients for a recipe by id
+PATCH: update only some of the ingredients for a recipe by id
+
+chop/api/recipes/{id}/images
+GET: all the images for a specific dish
+POST: add an image for a specific dish
+
+
+INGREDIENTS
+chop/api/ingredients/{ingredient_name}
+GET: a specific ingredient by name(i'm thinking names can be the unique identifier here?)
+
+chop/api/ingredients/{ingredient_name}/recipes
+GET: all recipes that use a specific ingredient
+
+
+NATIONS
+chop/api/nations/
+GET: all nations with at least 1 recipe
+
+chop/api/nations/{nation}
+GET: all recipes for a particular nation
+
+
+REGIONS
+chop/api/regions/
+GET: all regions with at least 1 recipe
+
+chop/api/regions/{region}
+GET: all recipes for a particular region
