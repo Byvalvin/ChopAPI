@@ -1,9 +1,13 @@
 import { NextFunction, Request,Response  } from 'express';
 import { recipes, ingredients as ingredientDB, categories as categoriesDB, subcategories as subcategoriesDB, images as imagesDB,regions as regionsDB } from '../data'; // Importing the simulated DB
-import { Recipe, Region, Ingredient, Category, Subcategory, RecipeIngredient, Image } from '../interface';
+// import { Recipe, Region, Ingredient, Category, Subcategory, RecipeIngredient, Image } from '../interface';
 import { normalizeString } from '../utils';
 
-// import Recipe from '../models/Recipe';  // Import the Recipe model
+import Recipe from '../models/Recipe';  // Import the Recipe model
+import { Sequelize, Op } from 'sequelize';
+
+// Valid columns for sorting
+const validSortFields = ['name', 'time', 'cost'];
 
 // Validation Helper
 export const validateRecipeData = (data: any) => {
@@ -66,87 +70,67 @@ export const validateRecipeData = (data: any) => {
     return undefined; // If all validations pass
 };
 
-// DB data update helpers
-// Add or Update Ingredient in the ingredient database
-export const handleIngredients = (ingredients: RecipeIngredient[]): RecipeIngredient[] => {
-    return ingredients.map(ingredient => {
-        let recipeIngredient = ingredientDB.find(i => normalizeString(i.name) === normalizeString(ingredient.name));
-        if (recipeIngredient) { // If the ingredient exists, update quantity and unit
-            return { ...recipeIngredient, quantity: ingredient.quantity, unit: ingredient.unit };
-        } else { // If it doesn't exist, create and add new ingredient to the DB
-            const newIngredient: Ingredient = { id: ingredientDB.length + 1, name: ingredient.name };
-            ingredientDB.push(newIngredient);
-            return { ...newIngredient, quantity: ingredient.quantity, unit: ingredient.unit };
+
+// Helper to handle Ingredients (Update or Insert)
+export const handleIngredients = async (ingredients: any[]): Promise<Ingredient[]> => {
+    const processedIngredients: Ingredient[] = [];
+    for (const ingredient of ingredients) {
+        let [recipeIngredient, created] = await Ingredient.findOrCreate({
+            where: { name: ingredient.name },
+            defaults: { name: ingredient.name }
+        });
+        // If the ingredient already exists, update its quantity and unit
+        if (!created) {
+            recipeIngredient.quantity = ingredient.quantity;
+            recipeIngredient.unit = ingredient.unit;
+            await recipeIngredient.save();
         }
-    });
+        processedIngredients.push(recipeIngredient);
+    }
+    return processedIngredients;
 };
 
-// Add or Update Categories in the category database
-export const handleCategories = (categories: string[]): Category[] => {
-    return categories.map((category: string) => {
-        const existingCategory = categoriesDB.find(c => c.name === category);
-        if (existingCategory) {
-            return existingCategory; // Return existing category
-        }
-        const newCategory = {
-            id: Math.max(...categoriesDB.map(c => c.id), 0) + 1,
-            name: category
-        };
-        categoriesDB.push(newCategory);
-        return newCategory;
-    });
+// Handle Categories (Update or Insert)
+export const handleCategories = async (categories: string[]): Promise<Category[]> => {
+    const processedCategories: Category[] = [];
+    for (const category of categories) {
+        let [existingCategory, created] = await Category.findOrCreate({
+            where: { name: category },
+            defaults: { name: category }
+        });
+        processedCategories.push(existingCategory);
+    }
+    return processedCategories;
 };
 
-// Add or Update Subcategories in the subcategory database
-export const handleSubcategories = (subcategories: string[]): Subcategory[] => {
-    return subcategories.map((subcategory: string) => {
-        const existingSubcategory = subcategoriesDB.find(s => s.name === subcategory);
-        if (existingSubcategory) {
-            return existingSubcategory; // Return existing subcategory
-        }
-        const newSubcategory = {
-            id: Math.max(...subcategoriesDB.map(s => s.id), 0) + 1,
-            name: subcategory
-        };
-        subcategoriesDB.push(newSubcategory);
-        return newSubcategory;
-    });
+// Handle Subcategories (Update or Insert)
+export const handleSubcategories = async (subcategories: string[]): Promise<Subcategory[]> => {
+    const processedSubcategories: Subcategory[] = [];
+    for (const subcategory of subcategories) {
+        let [existingSubcategory, created] = await Subcategory.findOrCreate({
+            where: { name: subcategory },
+            defaults: { name: subcategory }
+        });
+        processedSubcategories.push(existingSubcategory);
+    }
+    return processedSubcategories;
 };
 
-export const handleImages = (images: Image[]) : Image[] => {
-    return images.map((image: Image) => {
-        const existingImage = imagesDB.find(i => i.url===image.url);
-        if (existingImage) {
-            return existingImage; // Return existing subcategory
-        }
-        const newImage = {
-            ...image,
-            id: Math.max(...imagesDB.map(i => i.id), 0) + 1
-        };
-        imagesDB.push(newImage);
-        return newImage;
-    });
-}
-
-// Add or Update Region in the region database
-export const handleRegion = (region: string, nation: string): string | null => {
+// Handle Region (Update or Insert)
+export const handleRegion = async (region: string, nation: string): Promise<Region | null> => {
     if (!region) return null;
 
-    let updatedRegion = regionsDB.find(r => r.name === region);
-    if (!updatedRegion) { // If the region doesn't exist, create a new region
-        const newRegion : Region = {
-            id: regionsDB.length + 1,
-            name: region,
-            nations: [nation]
-        };
-        regionsDB.push(newRegion);
-        updatedRegion = newRegion;
-    } else {
-        if (!updatedRegion.nations.includes(nation)) { // If region exists, check if the nation is already in the region
-            updatedRegion.nations.push(nation); // Add the nation if not present
-        }
+    let [updatedRegion, created] = await Region.findOrCreate({
+        where: { name: region },
+        defaults: { name: region, nations: [nation] }
+    });
+
+    if (!created && !updatedRegion.nations.includes(nation)) {
+        updatedRegion.nations.push(nation);
+        await updatedRegion.save();
     }
-    return updatedRegion.name;
+
+    return updatedRegion;
 };
 
 
@@ -192,51 +176,94 @@ const sortRecipes = (filtered: Recipe[], sort: string) => filtered.sort((a, b) =
     });
 
 // Main endpoint to get all recipes
-export const getAllRecipes = (req: Request, res: Response) => {
+export const getAllRecipes = async (req: Request, res: Response) => {
     let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query;
 
     // Validate limit and page to ensure they are numbers and within reasonable bounds
     limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
     page = Math.max(1, Number(page));
 
-    let filtered: Recipe[] = recipes; // Start with all recipes
+    // Start with an empty object for where conditions
+    let whereConditions: any = {}; // This will hold the dynamic `where` conditions for Sequelize
 
-    // Filtering logic
-    if (category) filtered = filterByCategory(filtered, category as string);
-    if (subcategory) filtered = filterBySubcategory(filtered, subcategory as string);
-    if (nation) filtered = filterByNation(filtered, nation as string);
-    if (region) filtered = filterByRegion(filtered, region as string);
-    if (time) filtered = filterByTime(filtered, time as string);
-    if (cost) filtered = filterByCost(filtered, cost as string);
-    if (search) filtered = filterBySearch(filtered, search as string);
-    if (sort) filtered = sortRecipes(filtered, sort as string);
-    
-    // Pagination logic
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginated = filtered.slice(startIndex, endIndex);
-
-    // Check if the page is out of range
-    if (startIndex >= filtered.length) {
-        res.status(200).json({
-            totalResults: paginated.length,
-            results: [],
-        });
+    // Add filtering conditions based on query parameters
+    if (category) whereConditions['categories'] = category;
+    if (subcategory) whereConditions['subcategories'] = subcategory;
+    if (nation) whereConditions['nation'] = nation;
+    if (region) whereConditions['region'] = region;
+    if (time) whereConditions['time'] = { [Op.lte]: time };  // Use Op for comparison
+    if (cost) whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
+    if (search) {
+        whereConditions[Op.or] = [
+            { name: { [Op.iLike]: `%${search}%` } },
+            { description: { [Op.iLike]: `%${search}%` } },
+            { '$ingredients.name$': { [Op.iLike]: `%${search}%` } },
+        ];
     }
-    res.status(200).json({
-        totalResults: paginated.length,
-        results: paginated,
-    });
+
+    // Handle sort parameter
+    let order: any = [];
+    // Check if sort is a string and if it's valid
+    if (typeof sort === 'string' && validSortFields.includes(sort)) {
+        order = [[sort, 'ASC']];
+    } else if (sort) {
+        // If sort is not a valid string, you can choose to either:
+        // - Ignore sorting (i.e., pass an empty array)
+        // - Use a default sort, for example by name (you can change this to your default)
+        order = [['name', 'ASC']];
+    }
+
+
+    // Sequelize findAll query with dynamic conditions and sorting
+    try {
+        const { count, rows } = await Recipe.findAndCountAll({
+            where: whereConditions,
+            include: [{ association: 'ingredients' }], // Assuming 'ingredients' is a related model (adjust if necessary)
+            limit: Number(limit),
+            offset: (page - 1) * limit,
+            order,  // Pass the order here
+        });
+
+        // If no results are found
+        if (!rows.length) {
+            return res.status(200).json({
+                totalResults: count,
+                results: [],
+            });
+        }
+
+        // Return paginated results
+        res.status(200).json({
+            totalResults: count,
+            results: rows,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching recipes from the database' });
+    }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Add A New Recipe
-export const addRecipe = (req: Request, res: Response) => {
+export const addRecipe = async (req: Request, res: Response) => {
     const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Get user data from the request body
 
     // Validate the recipe data
     const recipeData = { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost };
     if (!(name && description && nation && ingredients && instructions && time !== undefined)) { // Basic field validation
-        res.status(400).json( { message: "Missing required fields: name, description, nation, ingredients, instructions, and time are required." } );
+        res.status(400).json({ message: "Missing required fields: name, description, nation, ingredients, instructions, and time are required." });
         return;
     }
     const validationResult = validateRecipeData(recipeData);
@@ -246,33 +273,34 @@ export const addRecipe = (req: Request, res: Response) => {
     }
 
     // Handle ingredients, categories, subcategories, and region
-    const recipeIngredients = handleIngredients(ingredients);
-    const recipeCategories = categories ? handleCategories(categories) : categories;
-    const recipeSubcategories = subcategories ? handleSubcategories(subcategories) : subcategories;
-    const recipeRegion = region ? handleRegion(region, nation) : region;
+    const recipeIngredients = await handleIngredients(ingredients);
+    const recipeCategories = categories ? await handleCategories(categories) : categories;
+    const recipeSubcategories = subcategories ? await handleSubcategories(subcategories) : subcategories;
+    const recipeRegion = region ? await handleRegion(region, nation) : region;
 
-    // Step 5: Create the new recipe object
-    const newRecipe: Recipe = {
-        id: recipes.length + 1, // Assuming you're generating the ID as the next in the array length
-        name,
-        description,
-        nation,
-        region: recipeRegion ? recipeRegion.name : "-", // Use the region name, or default to "-"
-        ingredients: recipeIngredients,
-        instructions,
-        aliases: aliases || [],
-        categories: recipeCategories,
-        subcategories: recipeSubcategories,
-        images: images || [],
-        time,
-        cost: cost || 0,
-    };
+    // Step 5: Create the new recipe object in the database
+    try {
+        const newRecipe = await Recipe.create({
+            name,
+            description,
+            nation,
+            region: recipeRegion ? recipeRegion.name : "-", // Use the region name, or default to "-"
+            ingredients: recipeIngredients,  // This will be handled by an association
+            instructions,
+            aliases: aliases || [],
+            categories: recipeCategories, // This will be handled by an association
+            subcategories: recipeSubcategories, // This will be handled by an association
+            images: images || [],
+            time,
+            cost: cost || 0,
+        });
 
-    // Save the new recipe (for now, we push it into the dummy recipes array)
-    recipes.push(newRecipe);
-
-    // Send response
-    res.status(201).json({ message: `New recipe added with id: ${newRecipe.id}` });
+        // Send response
+        res.status(201).json({ message: `New recipe added with id: ${newRecipe.id}` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error adding recipe to the database' });
+    }
 };
 
 

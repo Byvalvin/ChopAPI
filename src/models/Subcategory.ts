@@ -1,14 +1,14 @@
-// models/Ingredient.ts
+// models/Subcategory.ts
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../DB/connection';
-import Recipe from './Recipe';
+import Recipe from './Recipe'; // Import Recipe
 
-class Ingredient extends Model {
+class Subcategory extends Model {
   id!: number;
   name!: string;
 }
 
-Ingredient.init(
+Subcategory.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -22,16 +22,12 @@ Ingredient.init(
   },
   {
     sequelize,
-    modelName: 'Ingredient',
-    tableName: 'ingredients',
+    modelName: 'Subcategory',
+    tableName: 'subcategories',
   }
 );
 
 // Reverse relationship (many-to-many relationship via junction table)
-Ingredient.belongsToMany(Recipe, { through: 'RecipeIngredient', foreignKey: 'ingredientId' });
-/*
-An ingredient can appear in many recipes.
-A recipe can have many ingredients.
-*/
+Subcategory.belongsToMany(Recipe, { through: 'RecipeSubcategory', foreignKey: 'subcategoryId' });
 
-export default Ingredient;
+export default Subcategory;
