@@ -1,19 +1,8 @@
 import express from 'express';
 import logger from './middleware/logger'; // Import the custom logger
-import sequelize from './DB/connection'; // Import the Sequelize instance
-import Recipe from './models/Recipe'; // Import the Recipe model
-import Ingredient from './models/Ingredient'; // Import the Ingredient model
-import Region from './models/Region';
-import Nation from './models/Nation';
-import Category from './models/Category';
-import Subcategory from './models/Subcategory';
-import RecipeAlias from './models/RecipeAlias';
-import RecipeIngredient from './models/RecipeIngredient';
-import RecipeInstruction from './models/RecipeInstruction';
-import RecipeImage from './models/RecipeImage';
-import RecipeCategory from './models/RecipeCategory';
-import RecipeSubcategory from './models/RecipeSubcategory';
-import RegionNation from './models/RegionNation';
+import sequelize from './DB/connection'; // Import the authenticated Sequelize instance
+import setupAssociations from './DB/associations';
+
 
 const app = express();
 const baseURL = '/chop/api';
@@ -23,23 +12,32 @@ const baseURL = '/chop/api';
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use(logger); // Use the custom logging middleware
 
-// Add the Sequelize sync logic here
-/*
-// Use { force: true } only in development to reset the database, 
-// Use { alter: true } or migrations in production to avoid losing data and to allow for schema updates without dropping tables.
-*/
-sequelize.sync({ force: false }) 
-  .then(() => {
-    console.log("Database synced!");
-  })
-  .catch((error) => {
-    console.error("Error syncing database:", error);
-  });
+// Check if sequelize is already initialized
+if (sequelize) {
+  console.log("Attempting to sync...");
+
+  // Add the Sequelize sync logic here
+  /* 
+   * Use { force: true } only in development to reset the database,
+   * Use { alter: true } or migrations in production to avoid losing data and to allow for schema updates without dropping tables.
+   */
+  setupAssociations();
+  sequelize.sync({ force: true }) 
+    .then(() => {
+      console.log("Database synced!");
+      //setupAssociations();
+    })
+    .catch((error) => {
+      console.error("Error syncing database:", error);
+    });
+} else {
+  console.error('Sequelize instance is not initialized(app).');
+}
 
 // Add your routes here
 // Define your routes here (e.g., for Recipes, Ingredients, etc.)
 app.get('/', (req, res) => {
-    res.send("Welcome to the ChopAPI");
+  res.send("Welcome to the ChopAPI");
 });
 
 // ROUTES
@@ -51,29 +49,3 @@ app.use(`${baseURL}/recipes`, recipeRoutes); // RECIPES
 // app.use(`${baseURL}/ingredients`, ingredientRoutes); // INGREDIENTS
 
 export default app;
-
-
-
-/*
-sequelize.sync({ force: false })  // Set `force: true` only if you want to reset the database tables
-  .then(() => {
-    console.log('Database synced successfully!');
-  })
-  .catch((error) => {
-    console.error('Error syncing database:', error);
-  });
-
-// Syncing the database (usually put in a central place like index.ts or server.ts)
-sequelize.sync({ force: true }) // WARNING: Drops and recreates tables
-  .then(() => {
-    console.log("Database synced!");
-    // Start your server after the sync is done
-    app.listen(3000, () => {
-      console.log("Server running on http://localhost:3000");
-    });
-  })
-  .catch((error) => {
-    console.error("Error syncing database:", error);
-  });
-
-*/

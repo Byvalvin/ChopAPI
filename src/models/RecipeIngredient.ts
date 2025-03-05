@@ -4,6 +4,11 @@ import sequelize from '../DB/connection';
 import Recipe from './Recipe';
 import Ingredient from './Ingredient';
 
+// Check if the sequelize instance is properly initialized
+if (sequelize === null) {
+  throw new Error('Sequelize instance is not initialized');
+}
+
 class RecipeIngredient extends Model {
   recipeId!: number;
   ingredientId!: number;
@@ -29,7 +34,7 @@ RecipeIngredient.init(
       },
       primaryKey: true, // Composite primary key part 2
     },
-    amount: {
+    quantity: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },

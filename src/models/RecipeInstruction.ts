@@ -41,7 +41,4 @@ RecipeInstruction.init(
   }
 );
 
-// Associations
-RecipeInstruction.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
 export default RecipeInstruction;

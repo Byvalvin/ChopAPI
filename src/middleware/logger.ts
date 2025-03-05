@@ -24,9 +24,10 @@ const logger = (req: Request, res: Response, next: NextFunction) => {
 
     const originalSend = res.send;
     res.send = (body: any) => {
-        const statusCode = green(res.statusCode);
+        const statusCode = yellow(res.statusCode);
         const responseBody = gray(JSON.stringify(body));
-        console.log(`[${timestamp}] ${statusCode} Response: ${responseBody}`);
+        const responseText = blueBright("Response");
+        console.log(`[${timestamp}] ${statusCode} ${responseText}: ${responseBody}`);
         return originalSend.call(res, body);
     };
 

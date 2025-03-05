@@ -1,29 +1,24 @@
 [
   {
-    "id": 1,
     "name": "Recipe 1",
     "description": "A delicious recipe",
     "nation": "Nigeria",
     "region": "West Africa",
     "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Vegetarian" }
+        "Main","Vegetarian"
     ],
     "subcategories": [
-      { "id": 1, "name": "Spicy" },
-      { "id": 2, "name": "Gluten-Free" }
+     "Spicy","Gluten-Free"
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
+    "instructions": ["Add water"],
     "aliases": ["Alternative Recipe Name 1", "Alternate Name 2"],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image1.jpg",
         "type": "thumbnail",
         "caption": "Recipe 1 Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image2.jpg",
         "type": "full-size",
         "caption": "Recipe 1 Image 2"
@@ -32,8 +27,8 @@
     "time": 180,
     "cost": 20,
     "ingredients": [
-      { "id": 1, "name": "Tomato", "quantity": "2", "unit": "pieces" },
-      { "id": 2, "name": "Onion", "quantity": "1", "unit": "piece" }
+      { "name": "Tomato", "quantity": 2, "unit": "pieces" },
+      { "name": "Onion", "quantity": 1, "unit": "piece" }
     ]
   },
   {

@@ -21,8 +21,9 @@ export interface Subcategory {
 export interface Image {
     id: number;
     url: string;
-    type: string;
-    caption: string;
+    type?: string;
+    caption?: string;
+    addedAt?: Date;
 }
 
 // Ingredient (for the database)

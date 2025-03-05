@@ -1,52 +1,32 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
-// // Load environment variables from .env file
+// Load environment variables from .env file
 dotenv.config();
 
-const sequelize = new Sequelize(`postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`, {
+// Initialize Sequelize with your PostgreSQL connection string
+const DATABASE_URL = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT1}/${process.env.DB_NAME}`;
+const sequelize = new Sequelize(DATABASE_URL, {
   dialect: 'postgres',
   logging: false,  // Optional: Disable SQL query logging
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,  // For remote connections like Supabase
+    },
+  },
 });
 
-
-
 // Test connection
+console.log('Attempting to authenticate Sequelize connection...');
 sequelize.authenticate()
   .then(() => {
-    console.log('Connection to Supabase PostgreSQL successful!');
+    console.log('Connection to PostgreSQL successful!');
   })
   .catch((error) => {
     console.error('Unable to connect to the database:', error);
   });
+  
 
 export default sequelize;
-
-
-
-
-
-
-
-
-// // Create the connection using the environment variables
-// const sequelize = new Sequelize({
-//     host: process.env.DB_HOST,
-//     database: process.env.DB_NAME,
-//     username: process.env.DB_USER,
-//     password: process.env.DB_PASSWORD,
-//     dialect: 'postgres',
-//     port: 5432,  // Default PostgreSQL port
-//   });
-
-// // Test the connection
-// sequelize.authenticate()
-//   .then(() => {
-//     console.log('Connection to Supabase PostgreSQL successful!');
-//   })
-//   .catch((error) => {
-//     console.error('Unable to connect to the database:', error);
-//   });
-
-// export default sequelize;
 

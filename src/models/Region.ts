@@ -1,7 +1,5 @@
-// models/Region.ts
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../DB/connection'; // Import the Sequelize instance
-import Nation from './Nation'; // Import the Nation model
 
 class Region extends Model {
   id!: number;
@@ -26,8 +24,5 @@ Region.init(
     tableName: 'regions',
   }
 );
-
-// Many-to-many relationship through the RegionNation junction table
-Region.belongsToMany(Nation, { through: 'RegionNation', foreignKey: 'regionId' });
 
 export default Region;

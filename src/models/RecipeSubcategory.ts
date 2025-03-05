@@ -4,6 +4,11 @@ import sequelize from '../DB/connection';
 import Recipe from './Recipe';
 import Subcategory from './Subcategory';
 
+// Check if the sequelize instance is properly initialized
+if (sequelize === null) {
+  throw new Error('Sequelize instance is not initialized');
+}
+
 class RecipeSubcategory extends Model {
   recipeId!: number;
   subcategoryId!: number;

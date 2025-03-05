@@ -27,11 +27,11 @@ RecipeImage.init(
     },
     type: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     caption: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     addedAt: {
       type: DataTypes.DATE,
@@ -51,8 +51,5 @@ RecipeImage.init(
     ],
   }
 );
-
-// Associations
-RecipeImage.belongsTo(Recipe, { foreignKey: 'recipeId' });
 
 export default RecipeImage;

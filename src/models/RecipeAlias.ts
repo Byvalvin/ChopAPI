@@ -36,7 +36,4 @@ RecipeAlias.init(
   }
 );
 
-// Associations
-RecipeAlias.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
 export default RecipeAlias;

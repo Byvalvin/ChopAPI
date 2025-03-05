@@ -3,12 +3,7 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../DB/connection';
 import Region from './Region';
 import Nation from './Nation';
-import RecipeInstruction from './RecipeInstruction';
-import RecipeImage from './RecipeImage';
-import RecipeAlias from './RecipeAlias';
-import Category from './Category';
-import Subcategory from './Subcategory';
-import Ingredient from './Ingredient';
+
 
 class Recipe extends Model {
   id!: number;
@@ -64,21 +59,5 @@ Recipe.init(
     tableName: 'recipes',
   }
 );
-
-// Associations
-Recipe.belongsTo(Nation, { foreignKey: 'nationId' });
-Recipe.belongsTo(Region, { foreignKey: 'regionId' });
-Recipe.hasMany(RecipeInstruction);
-Recipe.hasMany(RecipeImage);
-Recipe.hasMany(RecipeAlias);
-
-// Define many-to-many relationship with Category through RecipeCategory
-Recipe.belongsToMany(Category, { through: 'RecipeCategory', foreignKey: 'recipeId' });
-
-// Define many-to-many relationship with Subcategory through RecipeSubcategory
-Recipe.belongsToMany(Subcategory, { through: 'RecipeSubcategory', foreignKey: 'recipeId' });
-
-// Define many-to-many relationship with Ingredient through RecipeIngredient
-Recipe.belongsToMany(Ingredient, { through: 'RecipeIngredient', foreignKey: 'recipeId' });
 
 export default Recipe;
