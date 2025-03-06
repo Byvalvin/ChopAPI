@@ -2,7 +2,7 @@ import { NextFunction, Request,Response  } from 'express';
 import { recipes, ingredients as ingredientDB, categories as categoriesDB, subcategories as subcategoriesDB, images as imagesDB,regions as regionsDB } from '../data'; // Importing the simulated DB
 // import { Recipe, Region, Ingredient, Category, Subcategory, RecipeIngredient, Image } from '../interface';
 import { normalizeString } from '../utils';
-import { Image } from '../interface';
+import { Recipe as RecipeI, Image } from '../interface';
 import Recipe from '../models/Recipe';  // Import the Recipe model
 import { Sequelize, Op } from 'sequelize';
 import Ingredient from '../models/Ingredient';
@@ -232,79 +232,184 @@ export const handleRecipeImages = async (recipeId:number, images:Image[]) : Prom
 //         }
 //     });
 
-// Main endpoint to get all recipes
-export const getAllRecipes = async (req: Request, res: Response) => {
-    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query;
 
-    // Validate limit and page to ensure they are numbers and within reasonable bounds
-    limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
-    page = Math.max(1, Number(page));
+export const getRecipeDetails = async (recipeId: number): Promise<Recipe | null> => {
+  try {
+    const recipe = await Recipe.findOne({
+      where: { id: recipeId },
+      include: [
+        {
+          model: Nation,
+          attributes: ['name'], // Fetch only the name of the nation
+        },
+        {
+          model: Region,
+          attributes: ['name'],
+        },
+        {
+          model: Category,
+          through: { attributes: [] },
+          attributes: ['name'],
+        },
+        {
+          model: Subcategory,
+          through: { attributes: [] },
+          attributes: ['name'],
+        },
+        {
+          model: RecipeInstruction,
+          attributes: ['step', 'instruction'],
+        },
+        {
+          model: RecipeAlias,
+          attributes: ['alias'],
+        },
+        {
+          model: RecipeImage,
+          attributes: ['url', 'type', 'caption'],
+        },
+        {
+          model: Ingredient,
+          through: { attributes: ['quantity', 'unit'] },
+          attributes: ['name'],
+        },
+      ],
+      //logging: console.log, // Log the SQL query to see what is happening
+    });
 
-    // Start with an empty object for where conditions
-    let whereConditions: any = {}; // This will hold the dynamic `where` conditions for Sequelize
-
-    // Add filtering conditions based on query parameters
-    if (category) whereConditions['categories'] = category;
-    if (subcategory) whereConditions['subcategories'] = subcategory;
-    if (nation) whereConditions['nation'] = nation;
-    if (region) whereConditions['region'] = region;
-    if (time) whereConditions['time'] = { [Op.lte]: parseInt(time as string,10) || 0 };  // Use Op for comparison
-    if (cost) whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
-    if (search) {
-        whereConditions[Op.or] = [
-            { name: { [Op.iLike]: `%${search}%` } },
-            { description: { [Op.iLike]: `%${search}%` } },
-            { '$ingredients.name$': { [Op.iLike]: `%${search}%` } }, // Use correct alias for ingredients
-        ];
+    if (!recipe) {
+      return null;  // Return null if no recipe is found
     }
 
-    // Handle sort parameter
-    let order: any = [];
-    // Check if sort is a string and if it's valid
-    if (typeof sort === 'string' && validSortFields.includes(sort)) {
-        order = [[sort, 'ASC']];
-    } else if (sort) {
-        // If sort is not a valid string, you can choose to either:
-        // - Ignore sorting (i.e., pass an empty array)
-        // - Use a default sort, for example by name (you can change this to your default)
-        order = [['name', 'ASC']];
-    }
+    // Map the sequelize instance to match the Recipe interface
+    // const recipeData: Recipe = {
+    //   id: recipe.id,
+    //   name: recipe.name,
+    //   description: recipe.description,
+    //   nation: recipe.Nation?.name || '', // Assuming Nation model has a 'name' field
+    //   region: recipe.Region?.name, // Region might be null, so handle that
+    //   instructions: recipe.RecipeInstructions?.map((instruction: RecipeInstruction) => instruction.instruction) || [],
+    //   categories: recipe.Categories?.map((category: Category) => ({
+    //     id: category.id,
+    //     name: category.name,
+    //   })) || [],
+    //   subcategories: recipe.Subcategories?.map((subcategory: Subcategory) => ({
+    //     id: subcategory.id,
+    //     name: subcategory.name,
+    //   })) || [],
+    //   aliases: recipe.RecipeAliases?.map((alias: RecipeAlias) => alias.alias) || [],
+    //   images: recipe.RecipeImages?.map((image: RecipeImage) => ({
+    //     id: image.id,
+    //     url: image.url,
+    //     type: image.type,
+    //     caption: image.caption,
+    //   })) || [],
+    //   time: recipe.time,
+    //   cost: recipe.cost,
+    //   ingredients: recipe.Ingredients?.map((ingredient: Ingredient & { RecipeIngredient: RecipeIngredient }) => ({
+    //     id: ingredient.id,
+    //     name: ingredient.name,
+    //     quantity: ingredient.RecipeIngredient?.quantity || 0,
+    //     unit: ingredient.RecipeIngredient?.unit || '',
+    //   })) || [],
+    //   tips: recipe.tips || '', // Optional field, default to empty string if not present
+    // };
 
-    // Sequelize findAll query with dynamic conditions and sorting
-    try {
-        const { count, rows } = await Recipe.findAndCountAll({
-            where: whereConditions,
-            include: [
-                {
-                    model: Ingredient,  // Correct model reference
-                    through: { attributes: [] }, // Optionally exclude the join table
-                },
-            ],
-            limit: Number(limit),
-            offset: (page - 1) * limit,
-            order,  // Pass the order here
-        });
-
-        // If no results are found
-        if (!rows.length) {
-            res.status(200).json({
-                totalResults: count,
-                results: [],
-            });
-            return;
-        }
-
-        // Return paginated results
-        res.status(200).json({
-            totalResults: count,
-            results: rows,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching recipes from the database' });
-    }
+    //return recipeData;
+    return recipe;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error fetching detailed recipe data');
+  }
 };
 
+  
+
+  // Main endpoint to get all recipes
+  export const getAllRecipes = async (req: Request, res: Response) => {
+      let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query;
+  
+      // Validate limit and page to ensure they are numbers and within reasonable bounds
+      limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
+      page = Math.max(1, Number(page));
+  
+      // Start with an empty object for where conditions
+      let whereConditions: any = {}; // This will hold the dynamic `where` conditions for Sequelize
+  
+      // Add filtering conditions based on query parameters
+      if (category) whereConditions['categories'] = category;
+      if (subcategory) whereConditions['subcategories'] = subcategory;
+      if (nation) whereConditions['nation'] = nation;
+      if (region) whereConditions['region'] = region;
+      if (time) whereConditions['time'] = { [Op.lte]: parseInt(time as string, 10) || 0 };  // Use Op for comparison
+      if (cost) whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
+      if (search) {
+          whereConditions[Op.or] = [
+              { name: { [Op.iLike]: `%${search}%` } },
+              { description: { [Op.iLike]: `%${search}%` } },
+              { '$ingredients.name$': { [Op.iLike]: `%${search}%` } }, // Use correct alias for ingredients
+          ];
+      }
+  
+      // Handle sort parameter
+      let order: any = [];
+      // Check if sort is a string and if it's valid
+      if (typeof sort === 'string' && validSortFields.includes(sort)) {
+          order = [[sort, 'ASC']];
+      } else if (sort) {
+          // If sort is not a valid string, you can choose to either:
+          // - Ignore sorting (i.e., pass an empty array)
+          // - Use a default sort, for example by name (you can change this to your default)
+          order = [['name', 'ASC']];
+      }
+  
+      // Sequelize findAll query with dynamic conditions and sorting
+      try {
+          // Fetching recipe IDs based on dynamic conditions
+          const { count, rows } = await Recipe.findAndCountAll({
+              where: whereConditions,
+              include: [
+                  {
+                      model: Ingredient,  // Correct model reference
+                      through: { attributes: [] }, // Optionally exclude the join table
+                  },
+              ],
+              limit: Number(limit),
+              offset: (page - 1) * limit,
+              order,  // Pass the order here
+          });
+  
+          // If no results are found
+          if (!rows.length) {
+              res.status(200).json({
+                  totalResults: count,
+                  results: [],
+              });
+              return;
+          }
+  
+          // Now use `getRecipeDetails` to fetch details for each recipe
+          const detailedRecipes = [];
+  
+          // Loop through each recipe to fetch detailed data
+          for (const recipe of rows) {
+              const detailedRecipe = await getRecipeDetails(recipe.id);  // Get full details using the existing function
+              if (detailedRecipe) {
+                  detailedRecipes.push(detailedRecipe);
+              }
+          }
+  
+          // Return paginated results with detailed recipes
+          res.status(200).json({
+              totalResults: count,
+              results: detailedRecipes,
+          });
+      } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Error fetching recipes from the database' });
+      }
+  };
+  
 
 
 // Add A New Recipe

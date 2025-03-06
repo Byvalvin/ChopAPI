@@ -45,8 +45,8 @@ export interface Recipe {
     nation: string;
     region?: string; // Optional
     instructions: string[];
-    categories?: Category[]; // Optional
-    subcategories?: Subcategory[]; // Optional
+    categories?: string[]; // Optional
+    subcategories?: string[]; // Optional
     aliases?: string[]; // Optional
     images?: Image[]; // Optional
     time: number;

@@ -1,12 +1,6 @@
 // models/Subcategory.ts
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../DB/connection';
-import Recipe from './Recipe'; // Import Recipe
-
-// Check if the sequelize instance is properly initialized
-if (sequelize === null) {
-  throw new Error('Sequelize instance is not initialized');
-}
 
 class Subcategory extends Model {
   id!: number;
@@ -31,9 +25,5 @@ Subcategory.init(
     tableName: 'subcategories',
   }
 );
-
-// Subcategory
-// Subcategory.belongsToMany(Recipe, { through: 'RecipeSubcategory', foreignKey: 'subcategoryId' });
-
 
 export default Subcategory;

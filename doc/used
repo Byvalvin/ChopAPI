@@ -7,6 +7,7 @@ Typescript
 Jest
 Nodemon
 Express
+Vercel
 
 
 npx tsc
@@ -33,3 +34,5 @@ drizzle: https://orm.drizzle.team/
 prisma
 sequelize
 typeORM: https://typeorm.io/
+
+Caching: You might want to consider caching the results of these detailed recipes (perhaps via a caching service like Redis)

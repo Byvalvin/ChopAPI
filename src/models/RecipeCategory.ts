@@ -4,11 +4,6 @@ import sequelize from '../DB/connection';
 import Recipe from './Recipe';
 import Category from './Category';
 
-// Check if the sequelize instance is properly initialized
-if (sequelize === null) {
-  throw new Error('Sequelize instance is not initialized');
-}
-
 class RecipeCategory extends Model {
   recipeId!: number;
   categoryId!: number;
