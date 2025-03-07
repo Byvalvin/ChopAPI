@@ -38,6 +38,11 @@ export interface RecipeIngredient extends Ingredient {
     unit: string;
 }
 
+export interface RecipeInstruction{
+    step: number;
+    text: string;
+}
+
 export interface Recipe {
     id: number;
     name: string;
@@ -45,8 +50,8 @@ export interface Recipe {
     nation: string;
     region?: string; // Optional
     instructions: string[];
-    categories?: string[]; // Optional
-    subcategories?: string[]; // Optional
+    categories?: Category[]; // Optional
+    subcategories?: Subcategory[]; // Optional
     aliases?: string[]; // Optional
     images?: Image[]; // Optional
     time: number;

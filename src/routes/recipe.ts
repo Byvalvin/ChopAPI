@@ -9,7 +9,9 @@ import { Router } from 'express';
 // } from '../controllers/recipeController';
 import {
     addRecipe,
-    getAllRecipes
+    getAllRecipes, getRecipeById, getAllRecipeWithName,
+    replaceRecipeById,
+    updateRecipeById
 } from '../controllers/recipeController';
 /*
 GET /chop/api/recipes?category=main
@@ -26,11 +28,11 @@ const router = Router();
 router.get('/',  getAllRecipes); // GET /chop/api/recipes: Description: Fetch all available recipes. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, search.
 router.post('/', addRecipe); // POST /chop/api/recipes: Description: Add a new recipe. Request body with new recipe data.
 
-// router.get('/:id', getRecipeById); // GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
-// router.put('/:id', replaceRecipeById); // PUT /chop/api/recipes/{id}: Description: Replace recipe by id. Request body with updated recipe data.
-// router.patch('/:id', updateRecipeById); // PATCH /chop/api/recipes/{id}: Description: Edit recipe by id. Request body with updated recipe data.
+router.get('/:id', getRecipeById); // GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
+router.put('/:id', replaceRecipeById); // PUT /chop/api/recipes/{id}: Description: Replace recipe by id. Request body with updated recipe data.
+router.patch('/:id', updateRecipeById); // PATCH /chop/api/recipes/{id}: Description: Edit recipe by id. Request body with updated recipe data.
 
-// router.get('/:name', getAllRecipeWithName); // GET /chop/api/recipes/{name}: Description: Fetch all recipes with the given name(checks both Name and other names). Query parameters: Filter by category, sub_category, nation, region, time, cost, limit, page, sort.
+router.get('/:name', getAllRecipeWithName); // GET /chop/api/recipes/{name}: Description: Fetch all recipes with the given name(checks both Name and other names). Query parameters: Filter by category, sub_category, nation, region, time, cost, limit, page, sort.
 // router.get('/:id/names', getRecipeNamesById); // GET /chop/api/recipes/{id}/names: Description: Fetch all available names for a recipe. No query parameters.
 // router.post('/:id/names', replaceAliasForRecipeById); // POST /chop/api/recipes/{id}/names: Description: REplace aliases for a recipe. No query parameters.
 // router.put('/:id/names', addAliasToRecipeById); // PUT /chop/api/recipes/{id}/names: Description: Add another alias for a recipe. No query parameters.

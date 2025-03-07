@@ -1,17 +1,21 @@
 [
   {
+    "id": 1,
     "name": "Recipe 1",
     "description": "A delicious recipe",
     "nation": "Nigeria",
     "region": "West Africa",
-    "categories": [
-        "Main","Vegetarian"
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-     "Spicy","Gluten-Free"
+    "categories": ["Main" ,"Vegetarian"
     ],
-    "instructions": ["Add water"],
-    "aliases": ["Alternative Recipe Name 1", "Alternate Name 2"],
+    "subcategories": ["Spicy" ,"Gluten-Free"
+    ],
+    "aliases": [
+      "Alternative Recipe Name 1",
+      "Alternate Name 2"
+    ],
     "images": [
       {
         "url": "https://example.com/image1.jpg",
@@ -37,19 +41,18 @@
     "description": "Another tasty dish",
     "nation": "India",
     "region": "South Asia",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 3, "name": "Vegan" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 3, "name": "Mild" },
-      { "id": 4, "name": "Gluten-Free" }
+    "categories": ["Main" ,"Vegan" 
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Alternate Recipe Name 3"],
+    "subcategories": ["Mild" ,"Gluten-Free"
+    ],
+    "aliases": [
+      "Alternate Recipe Name 3"
+    ],
     "images": [
       {
-        "id": 3,
         "url": "https://example.com/image3.jpg",
         "type": "thumbnail",
         "caption": "Recipe 2 Image 1"
@@ -58,82 +61,8 @@
     "time": 120,
     "cost": 15,
     "ingredients": [
-      { "id": 3, "name": "Coriander", "quantity": "1 tbsp", "unit": "spoon" },
-      { "id": 4, "name": "Rice", "quantity": "200", "unit": "grams" }
-    ]
-  },
-  {
-    "id": 1,
-    "name": "Recipe 1",
-    "description": "A delicious recipe",
-    "nation": "Nigeria",
-    "region": "West Africa",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Vegetarian" }
-    ],
-    "subcategories": [
-      { "id": 1, "name": "Spicy" },
-      { "id": 2, "name": "Gluten-Free" }
-    ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Alternative Recipe Name 1", "Alternate Name 2"],
-    "images": [
-      {
-        "id": 1,
-        "url": "https://example.com/image1.jpg",
-        "type": "thumbnail",
-        "caption": "Recipe 1 Image 1"
-      },
-      {
-        "id": 2,
-        "url": "https://example.com/image2.jpg",
-        "type": "full-size",
-        "caption": "Recipe 1 Image 2"
-      }
-    ],
-    "time": 180,
-    "cost": 20,
-    "ingredients": [
-      { "id": 1, "name": "Tomato", "quantity": "2", "unit": "pieces" },
-      { "id": 2, "name": "Onion", "quantity": "1", "unit": "piece" }
-    ]
-  },
-  {
-    "id": 2,
-    "name": "Vegetable Stew",
-    "description": "A hearty vegetable stew full of flavor",
-    "nation": "India",
-    "region": "South Asia",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 3, "name": "Vegan" }
-    ],
-    "subcategories": [
-      { "id": 3, "name": "Spicy" },
-      { "id": 4, "name": "Low-Cost" }
-    ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Vegetarian Stew", "Indian Stew", "Spicy Veg Stew"],
-    "images": [
-      {
-        "id": 1,
-        "url": "https://example.com/image3.jpg",
-        "type": "thumbnail",
-        "caption": "Vegetable Stew Image 1"
-      },
-      {
-        "id": 2,
-        "url": "https://example.com/image4.jpg",
-        "type": "full-size",
-        "caption": "Vegetable Stew Image 2"
-      }
-    ],
-    "time": 90,
-    "cost": 10,
-    "ingredients": [
-      { "id": 1, "name": "Carrot", "quantity": "3", "unit": "pieces" },
-      { "id": 2, "name": "Potato", "quantity": "2", "unit": "pieces" }
+      { "name": "Coriander", "quantity": 1, "unit": "bunch" },
+      { "name": "Rice", "quantity": 200, "unit": "grams" }
     ]
   },
   {
@@ -142,25 +71,25 @@
     "description": "A traditional spicy rice dish with chicken",
     "nation": "India",
     "region": "South Asia",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Non-Vegetarian" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 5, "name": "Spicy" },
-      { "id": 6, "name": "Festive" }
+    "categories": ["Main" ,"Non-Vegetarian"
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Biryani", "Spicy Chicken Biryani", "Traditional Biryani"],
+    "subcategories": ["Spicy" ,"Festive"
+    ],
+    "aliases": [
+      "Biryani",
+      "Spicy Chicken Biryani",
+      "Traditional Biryani"
+    ],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image5.jpg",
         "type": "thumbnail",
         "caption": "Chicken Biryani Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image6.jpg",
         "type": "full-size",
         "caption": "Chicken Biryani Image 2"
@@ -169,8 +98,8 @@
     "time": 120,
     "cost": 30,
     "ingredients": [
-      { "id": 1, "name": "Chicken", "quantity": "500", "unit": "grams" },
-      { "id": 2, "name": "Rice", "quantity": "2", "unit": "cups" }
+      { "name": "Chicken", "quantity": 300, "unit": "grams" },
+      { "name": "Rice", "quantity": 200, "unit": "grams" }
     ]
   },
   {
@@ -179,25 +108,25 @@
     "description": "A classic Italian pasta dish with fresh vegetables",
     "nation": "Italy",
     "region": "Mediterranean",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Vegetarian" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 7, "name": "Vegetarian" },
-      { "id": 8, "name": "Quick" }
+    "categories": ["Main" , "Vegetarian" 
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Veggie Pasta", "Italian Pasta Primavera", "Summer Pasta"],
+    "subcategories": ["Vegetarian" ,"Quick" 
+    ],
+    "aliases": [
+      "Veggie Pasta",
+      "Italian Pasta Primavera",
+      "Summer Pasta"
+    ],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image7.jpg",
         "type": "thumbnail",
         "caption": "Pasta Primavera Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image8.jpg",
         "type": "full-size",
         "caption": "Pasta Primavera Image 2"
@@ -206,8 +135,8 @@
     "time": 30,
     "cost": 15,
     "ingredients": [
-      { "id": 1, "name": "Pasta", "quantity": "200", "unit": "grams" },
-      { "id": 2, "name": "Bell Pepper", "quantity": "2", "unit": "pieces" }
+      { "name": "Pasta", "quantity": 200, "unit": "grams" },
+      { "name": "Bell Pepper", "quantity": 1, "unit": "piece" }
     ]
   },
   {
@@ -216,25 +145,25 @@
     "description": "Delicious beef tacos with all the toppings",
     "nation": "Mexico",
     "region": "North America",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Non-Vegetarian" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 9, "name": "Street Food" },
-      { "id": 10, "name": "Spicy" }
+    "categories": ["Main" ,"Non-Vegetarian" 
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Taco", "Mexican Tacos", "Beef Taco Recipe"],
+    "subcategories": ["Street Food" ,"Spicy"
+    ],
+    "aliases": [
+      "Taco",
+      "Mexican Tacos",
+      "Beef Taco Recipe"
+    ],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image9.jpg",
         "type": "thumbnail",
         "caption": "Beef Tacos Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image10.jpg",
         "type": "full-size",
         "caption": "Beef Tacos Image 2"
@@ -243,8 +172,8 @@
     "time": 45,
     "cost": 12,
     "ingredients": [
-      { "id": 1, "name": "Ground Beef", "quantity": "300", "unit": "grams" },
-      { "id": 2, "name": "Taco Shells", "quantity": "6", "unit": "pieces" }
+      { "name": "Ground Beef", "quantity": 250, "unit": "grams" },
+      { "name": "Taco Shells", "quantity": 6, "unit": "pieces" }
     ]
   },
   {
@@ -253,25 +182,25 @@
     "description": "Japanese sushi rolls made with fresh ingredients",
     "nation": "Japan",
     "region": "East Asia",
-    "categories": [
-      { "id": 1, "name": "Main" },
-      { "id": 2, "name": "Non-Vegetarian" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 11, "name": "Deluxe" },
-      { "id": 12, "name": "Traditional" }
+    "categories": ["Main" ,"Non-Vegetarian"
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["California Rolls", "Sushi", "Maki Sushi"],
+    "subcategories": ["Deluxe" ,"Traditional"
+    ],
+    "aliases": [
+      "California Rolls",
+      "Sushi",
+      "Maki Sushi"
+    ],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image11.jpg",
         "type": "thumbnail",
         "caption": "Sushi Rolls Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image12.jpg",
         "type": "full-size",
         "caption": "Sushi Rolls Image 2"
@@ -280,8 +209,8 @@
     "time": 60,
     "cost": 25,
     "ingredients": [
-      { "id": 1, "name": "Sushi Rice", "quantity": "200", "unit": "grams" },
-      { "id": 2, "name": "Salmon", "quantity": "100", "unit": "grams" }
+      { "name": "Sushi Rice", "quantity": 200, "unit": "grams" },
+      { "name": "Salmon", "quantity": 150, "unit": "grams" }
     ]
   },
   {
@@ -290,25 +219,25 @@
     "description": "A rich and indulgent chocolate cake",
     "nation": "United States",
     "region": "North America",
-    "categories": [
-      { "id": 3, "name": "Dessert" },
-      { "id": 2, "name": "Vegetarian" }
+    "instructions": [
+      "Add water"
     ],
-    "subcategories": [
-      { "id": 13, "name": "Sweet" },
-      { "id": 14, "name": "Baked" }
+    "categories": ["Dessert" ,"Vegetarian" 
     ],
-    "instructions": [{ "step": 1, "text": "Add water" }],
-    "aliases": ["Chocolate Fudge Cake", "Moist Chocolate Cake", "Decadent Chocolate Cake"],
+    "subcategories": ["Sweet" ,"Baked" 
+    ],
+    "aliases": [
+      "Chocolate Fudge Cake",
+      "Moist Chocolate Cake",
+      "Decadent Chocolate Cake"
+    ],
     "images": [
       {
-        "id": 1,
         "url": "https://example.com/image13.jpg",
         "type": "thumbnail",
         "caption": "Chocolate Cake Image 1"
       },
       {
-        "id": 2,
         "url": "https://example.com/image14.jpg",
         "type": "full-size",
         "caption": "Chocolate Cake Image 2"
@@ -317,5 +246,7 @@
     "time": 90,
     "cost": 10,
     "ingredients": [
-      { "id": 1, "name": "Flour", "quantity": "200", "unit": "grams" }
-
+      { "name": "Flour", "quantity": 250, "unit": "grams" }
+    ]
+  }
+]

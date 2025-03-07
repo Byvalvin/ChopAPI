@@ -2,12 +2,12 @@ Sequelize(NodeJS Object Relational Mapping, ORM)
 PostgreSQL
 Supabase
 NodeJS
-npm
+npm, Nodemon
 Typescript
 Jest
-Nodemon
 Express
 Vercel
+Redis
 
 
 npx tsc
@@ -36,3 +36,4 @@ sequelize
 typeORM: https://typeorm.io/
 
 Caching: You might want to consider caching the results of these detailed recipes (perhaps via a caching service like Redis)
+https://icons8.com/icons/set/redis
