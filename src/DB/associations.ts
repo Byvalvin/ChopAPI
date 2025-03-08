@@ -19,11 +19,20 @@ export default function setupAssociations() {
     Recipe.hasMany(RecipeAlias, { foreignKey: 'recipeId' });
     Recipe.belongsToMany(Category, { through: 'recipe_categories', foreignKey: 'recipeId' });
     Recipe.belongsToMany(Subcategory, { through: 'recipe_subcategories', foreignKey: 'recipeId' });
-    Recipe.belongsToMany(Ingredient, { through: 'recipe_ingredients', foreignKey: 'recipeId' });
+    // In Recipe model
+Recipe.belongsToMany(Ingredient, {
+    through: 'recipe_ingredients', // The join table
+    foreignKey: 'recipeId',
+    otherKey: 'ingredientId',
+  });
 
     // Ingredient
-    Ingredient.belongsToMany(Recipe, { through: 'recipe_ingredients', foreignKey: 'ingredientId' });
-    
+// In Ingredient model
+Ingredient.belongsToMany(Recipe, {
+    through: 'recipe_ingredients',
+    foreignKey: 'ingredientId',
+    otherKey: 'recipeId',
+  });
     // Category
     Category.belongsToMany(Recipe, { through: 'recipe_categories', foreignKey: 'categoryId' });
 

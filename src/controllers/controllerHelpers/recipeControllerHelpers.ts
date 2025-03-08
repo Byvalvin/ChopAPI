@@ -110,7 +110,7 @@ export const stdInclude : Includeable[] = [
 // Helper to handle Ingredients (Update or Insert)
 export const handleIngredients = async (recipeId: number, ingredients: any[]) => {
     for (const ingredient of ingredients) {
-        const {name, quantity, unit } = ingredient;
+        const { name, quantity, unit } = ingredient;
         // Normalize the ingredient name
         const normalizedIngredientName:string = normalizeString(name);
         let [existingIngredient, created] = await Ingredient.findOrCreate({
@@ -122,7 +122,6 @@ export const handleIngredients = async (recipeId: number, ingredients: any[]) =>
         const existingRecipeIngredient = await RecipeIngredient.findOne({
             where: { recipeId, ingredientId: existingIngredient.id }
         });
-
         if (existingRecipeIngredient) {
             // If the ingredient exists, update it
             if(quantity)
@@ -270,18 +269,55 @@ export const handleRecipeImages = async (recipeId: number, images: Image[]): Pro
     }
 };
 
-export const generateRecipeFilterConditions = ( queryParams: any ) => {
+
+export const generateRecipeFilterConditions = (queryParams: any) => {
     const { category, subcategory, nation, region, time, cost, search } = queryParams;
   
     let whereConditions: any = {}; // Initialize the conditions object
+    let includeConditions: Includeable[] = []; // Initialize includes for related models
   
     // Add filtering conditions based on query parameters
-    if (category) whereConditions['$Categories.name$'] = category;
-    if (subcategory) whereConditions['$Subcategories.name$'] = subcategory;
-    if (nation) whereConditions['$Nation.name$'] = nation;
-    if (region) whereConditions['$Region.name$'] = region;
-    if (time) whereConditions['time'] = { [Op.lte]: parseInt(time as string, 10) || 0 };  // Use Op for comparison
-    if (cost) whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
+    if (category) {
+        includeConditions.push({
+            model: Category,
+            through: { attributes: [] }, // Exclude join table attributes
+            attributes: ['name'],
+            where: { name: normalizeString(category) }, // Apply category filter here
+        });
+    }
+
+    if (subcategory) {
+        includeConditions.push({
+            model: Subcategory,
+            through: { attributes: [] }, // Exclude join table attributes
+            attributes: ['name'],
+            where: { name: normalizeString(subcategory) }, // Apply subcategory filter here
+        });
+    }
+
+    if (nation) {
+        includeConditions.push({
+            model: Nation,
+            attributes: ['name'],
+            where: { name: normalizeString(nation) }, // Apply nation filter here
+        });
+    }
+
+    if (region) {
+        includeConditions.push({
+            model: Region,
+            attributes: ['name'],
+            where: { name: normalizeString(region) }, // Apply region filter here
+        });
+    }
+
+    if (time) {
+        whereConditions['time'] = { [Op.lte]: parseInt(time as string, 10) || 0 };  // Use Op for comparison
+    }
+
+    if (cost) {
+        whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
+    }
   
     // If there's a search term, include additional fields (name, description, ingredients)
     if (search) {
@@ -290,65 +326,69 @@ export const generateRecipeFilterConditions = ( queryParams: any ) => {
             { description: { [Op.iLike]: `%${search}%` } },
             { '$Ingredients.name$': { [Op.iLike]: `%${search}%` } }, // Use correct alias for ingredients
         ];
+        includeConditions.push({
+            model: Ingredient,
+            through: { attributes: [] }, // Exclude join table attributes
+            attributes: ['name'],
+        });
     }
-  
-    return whereConditions;
-  };
+
+    return { whereConditions, includeConditions };
+};
 
 
-export const getRecipeDetails = async (recipeId: number) => {
+
+// Refactor the getRecipeDetails function to support dynamic includes and safe access, default include everything(stdInclude)
+export const getRecipeDetails = async (recipeId: number, customInclude: Includeable[] = stdInclude) => {
     try {
+        // Combine default `stdInclude` with any custom includes provided
+        const includeArray = customInclude;
+
+        // Fetch the recipe with the specified includes
         const recipe = await Recipe.findOne({
             where: { id: recipeId },
-            include: stdInclude,
+            include: includeArray,
         });
+
         if (!recipe) return null;  // Return null if no recipe is found
 
-        // Type assertion to include associations like Nation, Region, etc.
+        // Type assertion to handle associations, we'll make sure the associations are safely accessed
         const typedRecipe = recipe as Recipe & {
-            Nation: { name: string };
-            Region: { name: string };
-            RecipeAliases: { alias: string }[];
-            RecipeInstructions: { step: number; instruction: string }[];
-            RecipeImages: { url: string; type: string; caption: string }[];
-            Categories: { name: string }[];
-            Subcategories: { name: string }[];
-            Ingredients: { name: string; recipe_ingredients: { quantity: number; unit: string } }[];
+            Nation?: { name: string }; // Nation might not be included if not in the query
+            Region?: { name: string }; // Same for Region
+            RecipeAliases?: { alias: string }[];
+            RecipeInstructions?: { step: number; instruction: string }[];
+            RecipeImages?: { url: string; type: string; caption: string }[];
+            Categories?: { name: string }[];
+            Subcategories?: { name: string }[];
+            Ingredients?: { name: string; recipe_ingredients: { quantity: number; unit: string } }[];
         };
 
-        // Map RecipeInstructions to the correct format
-        // const instructions: RecipeInstruction[] = recipe.RecipeInstructions.map((instruction: any) => ({
-        //     step: instruction.step,
-        //     text: instruction.instruction, // Renaming the field as per the interface
-        // }));
-
-        //Return the recipe in the required format
+        // Return the recipe in the required format, with optional chaining to avoid null errors
         return {
             id: recipe.id,
             name: recipe.name,
             description: recipe.description,
-            nation: typedRecipe.Nation.name, // Fetching the nation name
-            region: typedRecipe.Region ? typedRecipe.Region.name : undefined, // Region can be optional
-            instructions: typedRecipe.RecipeInstructions.map((instruction: any) => // Map RecipeInstructions to the correct format
-                instruction.instruction, // Renaming the field as per the interface
-            ),
-            categories: typedRecipe.Categories.map((category: any) => category.name),
-            subcategories: typedRecipe.Subcategories.map((subcategory: any) => subcategory.name),
-            aliases: typedRecipe.RecipeAliases.map((alias: any) => alias.alias),
-            images: typedRecipe.RecipeImages.map((image: any) => ({
+            nation: typedRecipe.Nation?.name, // Safely access Nation.name
+            region: typedRecipe.Region?.name, // Safely access Region.name
+            instructions: typedRecipe.RecipeInstructions?.sort((a, b) => a.step - b.step).map((instruction) => instruction.instruction) || [], // Sort by 'step' in ascending order// Map to just the instructions
+            categories: typedRecipe.Categories?.map((category: any) => category.name) || [], // Safely map categories
+            subcategories: typedRecipe.Subcategories?.map((subcategory: any) => subcategory.name) || [], // Safely map subcategories
+            aliases: typedRecipe.RecipeAliases?.map((alias: any) => alias.alias) || [], // Safely map aliases
+            images: typedRecipe.RecipeImages?.map((image: any) => ({
                 id: image.id,
                 url: image.url,
                 type: image.type,
                 caption: image.caption,
-            })),
+            })) || [], // Safely map images
             time: recipe.time,
-            cost: recipe.cost || undefined,
-            ingredients: typedRecipe.Ingredients.map((ingredient: any) => ({ // Map ingredients to match the RecipeIngredient interface
+            cost: recipe.cost || undefined, // If cost is undefined, it will be omitted
+            ingredients: typedRecipe.Ingredients?.map((ingredient: any) => ({
                 id: ingredient.id,
                 name: ingredient.name,
-                quantity: ingredient.recipe_ingredients.dataValues.quantity,
-                unit: ingredient.recipe_ingredients.dataValues.unit,
-            })),
+                quantity: ingredient.recipe_ingredients.dataValues?.quantity, // Safely access recipe_ingredients
+                unit: ingredient.recipe_ingredients.dataValues?.unit, // Safely access recipe_ingredients
+            })) || [], // Safely map ingredients
         };
     } catch (error) {
         console.error(error);
@@ -356,4 +396,18 @@ export const getRecipeDetails = async (recipeId: number) => {
     }
 };
 
-  
+
+// Simple validation for aliases
+const validateAliases = (aliases: string[]) => {
+    if (!aliases || aliases.length === 0) {
+      return { message: 'Aliases cannot be empty' };
+    }
+    return null;
+  };
+// helper for specific ingredient updates
+// if (typeof ingredient.name !== 'string') return { message: 'Each ingredient must have a valid name' };
+const validateIngredient = (ingredient : RecipeIngredientI) => { // assumes name is proper
+    if (typeof ingredient.quantity !== 'number') return { message: 'Each ingredient must have a valid quantity (number)' };
+    if (typeof ingredient.unit !== 'string') return { message: 'Each ingredient must have a valid unit (string)' };
+    return undefined;
+}
