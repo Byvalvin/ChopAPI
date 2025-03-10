@@ -17,21 +17,26 @@ import {
     validSortFields, stdInclude, 
     getRecipeDetails, generateRecipeFilterConditions,
     handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories,
-    validateRecipeData
+    validateRecipeData,
+    validateQueryParams
 } from './controllerHelpers/recipeControllerHelpers'
 
 
 // Main endpoint to get all recipes
 export const getAllRecipes = async (req: Request, res: Response) => {
-    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query; // Step 1: get user input
+    // Step 1: get user input
+    const {isValid, queryParams, errors} = validateQueryParams(req);
 
     // Step 2: validate and parse user input, return if bad input
-
+    if (!isValid) { // If validation failed, return the errors
+      res.status(400).json({ errors: errors });
+      return;
+    }
+    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = queryParams; 
+    
     // Validate limit and page to ensure they are numbers and within reasonable bounds
     limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
     page = Math.max(1, Number(page));
-    
-    const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where and include conditions using the helper function
 
     // Handle sort parameter
     let order: any = [];
@@ -47,6 +52,8 @@ export const getAllRecipes = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where and include conditions using the helper function
+
         const rows = await Recipe.findAll({ // Fetching recipe IDs based on dynamic conditions
             where: whereConditions, // Apply where conditions
             include: includeConditions, // Apply include conditions (associations)
@@ -257,7 +264,6 @@ export const updateRecipeById = async (req: Request, res: Response) => {
         return;
     }
     
-
     // Step 3: Fulfil Request
     try {
         const recipe = await Recipe.findOne({ // Find the recipe in the database
@@ -305,28 +311,33 @@ export const updateRecipeById = async (req: Request, res: Response) => {
 // Get Recipes with a given name
 export const getAllRecipeWithName = async (req: Request, res: Response) => {
     const { name } = req.params; // Step 1: get user input. Extract the name from the request params
-    let { category, subcategory, nation, region, time, cost, limit = 10, page = 1, sort } = req.query;
+    const {isValid, queryParams, errors} = validateQueryParams(req);
 
     // Step 2: validate and parse user input, return if bad input
+    if (!isValid) { // If validation failed, return the errors
+        res.status(400).json({ errors: errors });
+        return;
+    }
+    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1} = queryParams; 
+            
+    // Validate limit and page to ensure they are numbers and within reasonable bounds
+    limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
+    page = Math.max(1, Number(page));
+
+    // Apply sorting
+    let order: any = [];
+    if (sort) {
+        order = [[sort, 'ASC']];
+    } else {
+        // Default sorting by name if no sort is provided
+        order = [['name', 'ASC']];
+    }
+    const normalizedSearchTerm = normalizeString(name); // Normalize the name parameter from the request
 
     // Step 3: Fulfil Request
     try {
-        // Validate limit and page to ensure they are numbers and within reasonable bounds
-        limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
-        page = Math.max(1, Number(page));
-        
-        const normalizedSearchTerm = normalizeString(name); // Normalize the name parameter from the request
         const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
         whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the recipe name
-
-        // Apply sorting
-        let order: any = [];
-        if (sort) {
-            order = [[sort, 'ASC']];
-        } else {
-            // Default sorting by name if no sort is provided
-            order = [['name', 'ASC']];
-        }
 
         const rows  = await Recipe.findAll({ // Sequelize query to fetch the filtered and sorted recipes with the required associations
             where: whereConditions, // Apply where conditions for filtering
@@ -831,9 +842,16 @@ export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, 
 // Get Images of Recipe
 export const getRecipeImagesById = async(req:Request, res:Response) => {
     const {id} = req.params; // Step 1: get user input
-    let {limit=10,page=1} = req.query;
+    const {isValid, queryParams, errors} = validateQueryParams(req);
+
+    // Step 2: validate and parse user input, return if bad input
+    if (!isValid) { // If validation failed, return the errors
+        res.status(400).json({ errors: errors });
+        return;
+    }
+    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1} = queryParams; 
     
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const recipeId = parseInt(id, 10); 
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;

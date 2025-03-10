@@ -106,7 +106,7 @@ export const validateRecipeData = (data: any) => {
 
 
 // Helper function to validate and parse the query parameters
-export const validateQueryParams = (req: Request) => {
+export const validateQueryParams = (req: Request) :any => {
     const { category, subcategory, nation, region, time, cost, sort, limit = '10', page = '1', search} = req.query;
   
     // Initialize the errors object
@@ -143,13 +143,13 @@ export const validateQueryParams = (req: Request) => {
     }
   
     // Validate limit (should be a valid positive integer)
-    const parsedLimit = parseInt(limit, 10);
+    const parsedLimit = parseInt(limit as string, 10);
     if (isNaN(parsedLimit) || parsedLimit <= 0) {
       errors.push('Limit must be a positive integer');
     }
   
     // Validate page (should be a valid positive integer)
-    const parsedPage = parseInt(page, 10);
+    const parsedPage = parseInt(page as string, 10);
     if (isNaN(parsedPage) || parsedPage <= 0) {
       errors.push('Page must be a positive integer');
     }
@@ -171,16 +171,16 @@ export const validateQueryParams = (req: Request) => {
     return {
       isValid: true,
       queryParams: {
-        category: category ? normalizeString(category) : undefined,
-        subcategory: subcategory ? normalizeString(subcategory) : undefined,
-        nation: nation ? normalizeString(nation) : undefined,
-        region: region ? normalizeString(region) : undefined,
-        time: time ? parseInt(time, 10) : undefined,
-        cost: cost ? parseFloat(cost) : undefined,
-        sort: sort ? normalizeString(sort) : undefined,
+        category: category ? normalizeString(category as string) : undefined,
+        subcategory: subcategory ? normalizeString(subcategory as string) : undefined,
+        nation: nation ? normalizeString(nation as string) : undefined,
+        region: region ? normalizeString(region as string) : undefined,
+        time: time ? parseInt(time as string, 10) : undefined,
+        cost: cost ? parseFloat(cost as string) : undefined,
+        sort: sort ? normalizeString(sort as string) : undefined,
         limit: parsedLimit,
         page: parsedPage,
-        search: search ? normalizeString(search) : undefined,
+        search: search ? normalizeString(search as string) : undefined,
       },
     };
   };
