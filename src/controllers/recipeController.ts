@@ -18,18 +18,19 @@ import {
     getRecipeDetails, generateRecipeFilterConditions,
     handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories
 } from './controllerHelpers/recipeControllerHelpers'
-import { images } from '../data';
+
 
 // Main endpoint to get all recipes
 export const getAllRecipes = async (req: Request, res: Response) => {
-    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query;
+    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1, search } = req.query; // Step 1: get user input
+
+    // Step 2: validate and parse user input, return if bad input
 
     // Validate limit and page to ensure they are numbers and within reasonable bounds
     limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
     page = Math.max(1, Number(page));
-
-    // Generate the where and include conditions using the helper function
-    const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query);
+    
+    const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where and include conditions using the helper function
 
     // Handle sort parameter
     let order: any = [];
@@ -43,10 +44,9 @@ export const getAllRecipes = async (req: Request, res: Response) => {
         order = [['name', 'ASC']];
     }
 
-    // Sequelize findAll query with dynamic conditions and sorting
-    try {
-        // Fetching recipe IDs based on dynamic conditions
-        const { count, rows } = await Recipe.findAndCountAll({
+    // Step 3: Fulfil Request
+    try { // Sequelize findAll query with dynamic conditions and sorting
+        const rows = await Recipe.findAll({ // Fetching recipe IDs based on dynamic conditions
             where: whereConditions, // Apply where conditions
             include: includeConditions, // Apply include conditions (associations)
             limit: Number(limit),
@@ -73,33 +73,33 @@ export const getAllRecipes = async (req: Request, res: Response) => {
             }
         }
 
-        // Return paginated results with detailed recipes
+        // Step 4: Return paginated results with detailed recipes
         res.status(200).json({
             totalResults: detailedRecipes.length,
             results: detailedRecipes,
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipes from the database' });
+        res.status(500).json({ message: 'Error fetching recipes from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
 
 // Add A New Recipe
 export const addRecipe = async (req: Request, res: Response) => {
-    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body;
+    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Step 1: get user input
 
+    // Step 2: validate and parse user input, return if bad input
     // Validate required fields
     if (!(name && description && nation && region && ingredients && instructions && time !== undefined)) {
         res.status(400).json({ message: 'Missing required fields' });
         return;
     }
-
-    // Handle Region and Nation
-    const { regionId, nationId } = await handleRegionAndNation(region, nation);
-    // Create the new Recipe object
+    
+    // Step 3: Fulfil Request
+    const { regionId, nationId } = await handleRegionAndNation(region, nation); // Handle Region and Nation
     try {
-        const newRecipe = await Recipe.create({
+        const newRecipe = await Recipe.create({ // Create the new Recipe object
             name,
             description,
             nationId,
@@ -113,7 +113,6 @@ export const addRecipe = async (req: Request, res: Response) => {
         // Handle Categories and Subcategories
         if (categories) await handleCategories(newRecipe.id, categories);
         if (subcategories) await handleSubcategories(newRecipe.id, subcategories);
-
         // Handle Recipe Instructions, Aliases, and Images if needed
         await handleRecipeInstructions(newRecipe.id, instructions);
         await handleRecipeAliases(newRecipe.id, aliases);
@@ -123,49 +122,48 @@ export const addRecipe = async (req: Request, res: Response) => {
         res.status(201).json({ message: `Recipe added with ID: ${newRecipe.id}` });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error adding recipe' });
+        res.status(500).json({ message: 'Error adding recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
 // Get Recipe by ID
 export const getRecipeById = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params; // Extract the recipe ID from the request parameters
+    const { id } = req.params; // Step 1: get user input. Extract the recipe ID from the request parameters
 
     if (isNaN(Number(id))) {  // Check if the ID is a valid number (ID should be numeric)
         return next();  // If it's not a number, pass to the next route handler
     }
 
-    const recipeId = parseInt(id, 10);  // Convert ID to an integer
+    const recipeId = parseInt(id, 10);  // Step 2: validate and parse user input, return if bad input. Convert ID to an integer
+
+    // Step 3: Fulfil Request
     try {
         // Use getRecipeDetails to fetch the recipe details by ID
         const recipe = await getRecipeDetails(recipeId);
-
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
-        // Return the recipe details with status 200
+        // Step 4: Return the recipe details with status 200
         res.status(200).json(recipe);
         return;
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipe details' });
+        res.status(500).json({ message: 'Error fetching recipe details', error:`${(error as Error).name}: ${(error as Error).message}` });
         return;
     }
 };
 
 export const replaceRecipeById = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
-    const recipeId = parseInt(id, 10);
+    const { id } = req.params; // Step 1: get user input
+    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Get user data from the request body
 
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {  
         res.status(400).json({ message: "Invalid ID format" });
         return;
     }
-
-    // Get user data from the request body
-    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body;
 
     // Basic validation of required fields
     if (!(name && description && nation && ingredients && instructions && time !== undefined)) {
@@ -181,21 +179,19 @@ export const replaceRecipeById = async (req: Request, res: Response, next: NextF
             where: { id: recipeId },
             include: stdInclude,
         });
-
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
         // Check if the recipe name already exists (if name should be unique)
-        const existingRecipe = await Recipe.findOne({
-            where: { name, id: { [Op.ne]: recipeId } }
-        });
-
-        if (existingRecipe) {
-            res.status(400).json({ message: `A recipe with the name '${name}' already exists.` });
-            return;
-        }
+        // const existingRecipe = await Recipe.findOne({
+        //     where: { name, id: { [Op.ne]: recipeId } }
+        // });
+        // if (existingRecipe) {
+        //     res.status(400).json({ message: `A recipe with the name '${name}' already exists.` });
+        //     return;
+        // }
 
         // Delete existing associations before adding new ones
         await RecipeIngredient.destroy({ where: { recipeId } });  // Delete previous ingredients
@@ -229,36 +225,33 @@ export const replaceRecipeById = async (req: Request, res: Response, next: NextF
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating recipe data' });
+        res.status(500).json({ message: 'Error replacing recipe data', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
 // Update Recipe by Id
 export const updateRecipeById = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const recipeId = parseInt(id, 10);
+    const { id } = req.params; // Step 1: get user input
+    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Extract the recipe data from the request body
+
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid ID format' });
         return;
     }
 
-    // Extract the recipe data from the request body
-    const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body;
-
+    // Step 3: Fulfil Request
     try {
-        // Find the recipe in the database
-        const recipe = await Recipe.findOne({
+        const recipe = await Recipe.findOne({ // Find the recipe in the database
             where: { id: recipeId },
             include: stdInclude
         });
-
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
-
-        // Handle fields that are passed in the request
-        const updatedFields = {
+        
+        const updatedFields = { // Handle fields that are passed in the request
             name: name || recipe.name,
             description: description || recipe.description,
             time: time || recipe.time,
@@ -282,29 +275,32 @@ export const updateRecipeById = async (req: Request, res: Response) => {
             nationId,  // Update nationId after resolving nation
         });
 
-        // Return the updated recipe details
+        // Step 4: Return the updated recipe details
         const updatedRecipe = await getRecipeDetails(recipeId);
         res.status(200).json(updatedRecipe);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating recipe data' });
+        res.status(500).json({ message: 'Error updating recipe data', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
 // Get Recipes with a given name
 export const getAllRecipeWithName = async (req: Request, res: Response) => {
-    const { name } = req.params; // Extract the name from the request params
+    const { name } = req.params; // Step 1: get user input. Extract the name from the request params
     let { category, subcategory, nation, region, time, cost, limit = 10, page = 1, sort } = req.query;
 
+    // Step 2: validate and parse user input, return if bad input
+
+    // Step 3: Fulfil Request
     try {
-        // Normalize the name parameter from the request
-        const normalizedSearchTerm = normalizeString(name);
 
-        // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query);
-
-        // Apply name filter to the whereConditions
-        whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Match the recipe name
+        // Validate limit and page to ensure they are numbers and within reasonable bounds
+        limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
+        page = Math.max(1, Number(page));
+        
+        const normalizedSearchTerm = normalizeString(name); // Normalize the name parameter from the request
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
+        whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the recipe name
 
         // Apply sorting
         let order: any = [];
@@ -315,18 +311,15 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
             order = [['name', 'ASC']];
         }
 
-        // Sequelize query to fetch the filtered and sorted recipes with the required associations
-        const { count, rows } = await Recipe.findAndCountAll({
+        const rows  = await Recipe.findAll({ // Sequelize query to fetch the filtered and sorted recipes with the required associations
             where: whereConditions, // Apply where conditions for filtering
             include: includeConditions.length ? includeConditions : stdInclude, // Apply include conditions for associations
-            limit: parseInt(limit as string, 10),
-            offset: (parseInt(page as string, 10) - 1) * parseInt(limit as string, 10),
+            limit,
+            offset: (page - 1) * limit,
             order: order, // Apply ordering
         });
         
-
-        // If no recipes are found, return an empty result
-        if (!rows.length) {
+        if (!rows.length) { // If no recipes are found, return an empty result
             res.status(200).json({
                 totalResults: 0,
                 results: []
@@ -334,44 +327,43 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
             return;
         }
 
-        // Fetch detailed recipe data using the getRecipeDetails function
-        const detailedRecipes = await Promise.all(
+        const detailedRecipes = await Promise.all( // Fetch detailed recipe data using the getRecipeDetails function
             rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
         );
 
-        // Return the paginated results with detailed recipe data
+        // Step 4: Return the paginated results with detailed recipe data
         res.status(200).json({
             totalResults: detailedRecipes.length,
             results: detailedRecipes
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipes from the database' });
+        res.status(500).json({ message: `Error fetching recipes with name ${name} from the database`, error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
 
 // Get Names/Aliases for a Recipe
 export const getRecipeNamesById = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const recipeId = parseInt(id, 10);
+    const { id } = req.params; // Step 1: get user input
 
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+
+    // Step 3: Fulfil Request
     try {
         // Fetch the recipe by its ID along with its aliases using Sequelize
         const include : Includeable[] = [
             { model: RecipeAlias, attributes: ['alias'] }
         ]
         const recipe = await getRecipeDetails(recipeId, include);
-
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
-        // Collect the recipe name and its aliases (if any)
-        const names = [recipe.name, ...(recipe.aliases || [])];
+        const names = [recipe.name, ...(recipe.aliases || [])]; // Collect the recipe name and its aliases (if any)
 
-        // Return the recipe name(s) in the response
+        // Step 4: Return the recipe name(s) (OR FAILURE) message
         res.status(200).json({
             id: recipeId,
             names: names
@@ -379,7 +371,7 @@ export const getRecipeNamesById = async (req: Request, res: Response) => {
         return;
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipe from the database' });
+        res.status(500).json({ message: 'Error fetching recipe from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
         return;
     }
 };
@@ -387,152 +379,145 @@ export const getRecipeNamesById = async (req: Request, res: Response) => {
 
 // Replace aliases for a specific Recipe
 export const replaceAliasForRecipeById = async (req: Request, res: Response) => {
-    const { id } = req.params; // Recipe ID from params
+    const { id } = req.params; // Step 1: get user input. Recipe ID from params
     const { aliases } = req.body; // New aliases from request body
   
-    // Ensure recipeId is an integer
-    const recipeId = parseInt(id, 10);
-  
+    
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input. Ensure recipeId is an integer.
     if (isNaN(recipeId)) {
       res.status(400).json({ message: 'Invalid recipe ID' });
       return;
     }
-  
+
+    // Step 3: Fulfil Request
     try {
-  
-      // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
-      await RecipeAlias.destroy({
-        where: { recipeId }, // Delete aliases associated with this recipe
-      });
-  
-      // Step 4: Add the new aliases
-      await handleRecipeAliases(recipeId, aliases);
-  
-      // Step 5: Return the updated recipe along with the new aliases
-      res.status(200).json(await getRecipeDetails(recipeId));
+        await RecipeAlias.destroy({
+            where: { recipeId }, // Clear the current aliases (delete all existing aliases for this recipe)
+        });
+        await handleRecipeAliases(recipeId, aliases);
+    
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error updating aliases for recipe' });
+        console.error(error);
+        res.status(500).json({ message: 'Error replacing aliases for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
   };
 
 // Add a new alias for a specific Recipe
 export const addAliasToRecipeById = async (req: Request, res: Response) => {
-    const { id } = req.params; // Recipe ID from params
+    const { id } = req.params; // Step 1: get user input. Recipe ID from params
     const { aliases } = req.body; // New aliases from request body
   
     // Ensure recipeId is an integer
-    const recipeId = parseInt(id, 10);
-  
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
       res.status(400).json({ message: 'Invalid recipe ID' });
       return;
     }
-  
+
+    // Step 3: Fulfil Request
     try {
         await handleRecipeAliases(recipeId, aliases);
-  
-      // Step 4: Return the updated recipe along with the new aliases
-      res.status(200).json(await getRecipeDetails(recipeId));
+    
+        // Step 4: Return the updated recipe along with the new aliases
+        res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding alias to recipe' });
+        console.error(error);
+        res.status(500).json({ message: 'Error adding alias to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
   };
 
 // Get Ingredients for a specific Recipe
 export const getRecipeIngredientsById = async (req: Request, res: Response) => {
-    const { id } = req.params; // Recipe ID from request params
-    const recipeId = parseInt(id, 10);
-  
-    if (isNaN(recipeId)) {
-      res.status(400).json({ message: 'Invalid recipe ID' });
-      return;
-    }
-  
-    try {
-      // Fetch the recipe by its ID and include associated ingredients
-      const include : Includeable[] = [{
-        model: Ingredient,
-        attributes: ['id', 'name'], // You can add more fields if needed
-        through: { attributes: ['quantity','unit'] }, 
-      }];
-      const recipe = await getRecipeDetails(recipeId, include);
-  
-      // If the recipe is not found, return a 404 error
-      if (!recipe) {
-        res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
-        return;
-      }
-  
-      // Return the recipe's ingredients
-      res.status(200).json({
-        id: recipeId,
-        ingredients: recipe.ingredients, // The ingredients associated with the recipe
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching recipe ingredients from the database' });
-    }
-  };
+    const { id } = req.params; // Step 1: get user input. Recipe ID from request params
 
-// Replace Ingredients for a specific Recipe
-export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
-    const {id} = req.params;
-    const {ingredients} = req.body;
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil Request
     try {
-  
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
-        await RecipeIngredient.destroy({
-          where: { recipeId }, // Delete aliases associated with this recipe
-        });
+        const include : Includeable[] = [{ // Fetch the recipe by its ID and include associated ingredients
+            model: Ingredient,
+            attributes: ['id', 'name'], // You can add more fields if needed
+            through: { attributes: ['quantity','unit'] }, 
+        }];
+        const recipe = await getRecipeDetails(recipeId, include);
+        if (!recipe) { // If the recipe is not found, return a 404 error
+            res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
+            return;
+        }
     
-        // Step 4: Add the new aliases
+        // Step 4: Return the recipe's ingredients (OR FAILURE) message
+        res.status(200).json({
+            id: recipeId,
+            ingredients: recipe.ingredients, // The ingredients associated with the recipe
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching recipe ingredients from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
+    }
+};
+
+// Replace Ingredients for a specific Recipe
+export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
+    const {id} = req.params; // Step 1: get user input
+    const {ingredients} = req.body;
+
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    if (isNaN(recipeId)) {
+        res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+
+    // Step 3: Fulfil Request
+    try {
+        await RecipeIngredient.destroy({
+          where: { recipeId }, // Delete ingredients associated with this recipe
+        });
         await handleIngredients(recipeId, ingredients);
     
-        // Step 5: Return the updated recipe along with the new aliases
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
-      } catch (error) {
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
-      }
+        res.status(500).json({ message: 'Error replacing ingredients for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+    }
 }
 
 // Add new Ingredients for a specific Recipe
 export const addRecipeIngredientsById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const {ingredients} = req.body;
     
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
 
+    // Step 3: Fulfil Request
     try {
         await handleIngredients(recipeId, ingredients);
   
-      // Step 4: Return the updated recipe along with the new aliases
-      res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding alias to recipe' });
+        console.error(error);
+        res.status(500).json({ message: 'Error adding ingredient to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 
 // Remove a Recipe Ingredient by Id with Ingredient Id
 export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:Response) => {
-    const {id, ingredient_id} = req.params;
+    const {id, ingredient_id} = req.params; // Step 1: get user input
 
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     const ingredientId = parseInt(ingredient_id, 10);
-
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
@@ -541,19 +526,19 @@ export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:
         res.status(400).json({ message: 'Invalid ingredient ID' });
         return;
     }
+    
+    // Step 3: Fulfil Request
     try {
-  
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
         await RecipeIngredient.destroy({
-          where: { recipeId, ingredientId }, // Delete aliases associated with this recipe
+          where: { recipeId, ingredientId }, // Clear the current ingredients for this recipe (delete all existing ingredients for this recipe)
         });
     
-        // Step 5: Return the updated recipe along with the new aliases
-        res.status(200).json(await getRecipeDetails(recipeId));
-      } catch (error) {
+        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
+        res.status(204).json({message:`Deleted Ingredient with id ${ingredientId} from recipe with id ${recipeId}`});
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
-      }
+        res.status(500).json({ message: 'Error removing ingredient for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+    }
 }
 
 // Get the Instructions for a Recipe
@@ -566,65 +551,64 @@ export const getRecipeInstructionsById = async (req:Request, res:Response) => {
         return;
       }
     try {
-      // Fetch the recipe by its ID and include associated ingredients
-      const include : Includeable[] = [
-        { model: RecipeInstruction, attributes: ['step', 'text'] }
-    ]
-      const recipe = await getRecipeDetails(recipeId, include);
-  
-      // If the recipe is not found, return a 404 error
-      if (!recipe) {
-        res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
-        return;
-      }
-  
-      // Return the recipe's ingredients
-      res.status(200).json({
-        id: recipeId,
-        instructions: recipe.instructions, // The ingredients associated with the recipe
-      });
+        const include : Includeable[] = [
+            { model: RecipeInstruction, attributes: ['step', 'instruction'] }
+        ]
+        const recipe = await getRecipeDetails(recipeId, include); // Fetch the recipe by its ID and include associated instructions
+        if (!recipe) { // If the recipe is not found, return a 404 error
+            res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
+            return;
+        }
+    
+        // Step 4: Return the recipe instructions, include success (OR FAILURE) message
+        res.status(200).json({
+            id: recipeId,
+            instructions: recipe.instructions, // The ingredients associated with the recipe
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching recipe ingredients from the database' });
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching recipe instructions from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }  
 
 }
 
 // Replace the Instructions for a Recipe
 export const replaceRecipeInstructionsById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const {instructions} = req.body;
-    const recipeId = parseInt(id, 10);
+
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input 
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil Request
     try {
-  
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
         await RecipeInstruction.destroy({
-          where: { recipeId }, // Delete aliases associated with this recipe
+          where: { recipeId }, // Clear the current instructions specifically for this recipe (delete all existing instructions for this recipe)
         });
-    
-        // Step 4: Add the new aliases
         await handleRecipeInstructions(recipeId, instructions);
     
-        // Step 5: Return the updated recipe along with the new aliases
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
-      } catch (error) {
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
-      }
+        res.status(500).json({ message: 'Error replacing instructions for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+    }
 }
 
 // Get all Categories for a Recipe
 export const getRecipeCategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params;
-    const recipeId = parseInt(id, 10);
+    const {id} = req.params; // Step 1: get user input
+
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil Request
     try {
         // Fetch the recipe by its ID and include associated ingredients
         const include : Includeable[] = [{
@@ -633,151 +617,160 @@ export const getRecipeCategoriesById = async(req:Request, res:Response) => {
             through: { attributes: [] }, 
         }];
         const recipe = await getRecipeDetails(recipeId, include);
-
-        // If the recipe is not found, return a 404 error
-        if (!recipe) {
+        if (!recipe) { // If the recipe is not found, return a 404 error
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
-        // Return the recipe's ingredients
+        // Step 4: Return the recipe's categories, include success (OR FAILURE) message
         res.status(200).json({
             id: recipeId,
             categories: recipe.categories, // The ingredients associated with the recipe
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipe ingredients from the database' });
+        res.status(500).json({ message: 'Error fetching recipe categories from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Add new Categories to a Recipe
 export const addRecipeCategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const {categories} = req.body;
     
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil Request
     try {
         await handleCategories(recipeId, categories);
   
-      // Step 4: Return the updated recipe along with the new aliases
-      res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the new recipe, include success (OR FAILURE) message
+        res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding alias to recipe' });
+        console.error(error);
+        res.status(500).json({ message: 'Error adding category to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Remove a Category from a Recipe BY Id
 export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Response, next:NextFunction) => {
-    const {id, category_id} = req.params;
+    const {id, category_id} = req.params; // Step 1: get user input
 
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const categoryId = parseInt(category_id, 10);
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
-    const categoryId = parseInt(category_id, 10);
+    if (isNaN(categoryId)) {
+        res.status(400).json({ message: 'Invalid category ID' });
+        return;
+    }
 
+    // Step 3: Fulfil Request
     try {
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
         await RecipeCategory.destroy({
-            where: { recipeId, categoryId }, // Delete aliases associated with this recipe
+            where: { recipeId, categoryId }, // Delete only the recipecategory with id categoryId for this recipe(recipeId)
         });
 
-        // Step 5: Return the updated recipe along with the new aliases
-        res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
+        res.status(204).json({message:`Deleted Category with id ${categoryId} from recipe with id ${recipeId}`});
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
+        res.status(500).json({ message: 'Error removing category for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 
 // Get all Subcategories for a Recipe
 export const getRecipeSubcategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const recipeId = parseInt(id, 10);
 
-    if (isNaN(recipeId)) {
+    if (isNaN(recipeId)) { // Step 2: validate and parse user input, return if bad input
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil Request
     try {
-        // Fetch the recipe by its ID and include associated ingredients
+        // Fetch the recipe by its ID and include associated subcategories
         const include : Includeable[] = [{
             model: Subcategory,
             attributes: ['id', 'name'], // You can add more fields if needed
             through: { attributes: [] }, 
         }];
         const recipe = await getRecipeDetails(recipeId, include);
-
-        // If the recipe is not found, return a 404 error
-        if (!recipe) {
+        if (!recipe) {// If the recipe is not found, return a 404 error
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
-        // Return the recipe's ingredients
-        res.status(200).json({
+        // Step 4: Return the recipe's subcategories, include success (OR FAILURE) message
+        res.status(200).json({ 
             id: recipeId,
             subcategories: recipe.subcategories, // The ingredients associated with the recipe
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipe ingredients from the database' });
+        res.status(500).json({ message: 'Error fetching recipe subcategories from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 
 // Add new Subcategories to a Recipe
 export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const {subcategories} = req.body;
     
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+
+    // Step 3: Fulfil request
     try {
-        await handleSubcategories(recipeId, subcategories);
+        await handleSubcategories(recipeId, subcategories); // update RecipeSubcategory (and Subcategory if new addition) DBs by adding new Subcategory Objects
   
-      // Step 4: Return the updated recipe along with the new aliases
-      res.status(200).json(await getRecipeDetails(recipeId));
+      // Step 4: Return the updated recipe, include success (OR FAILURE) message
+      res.status(201).json(await getRecipeDetails(recipeId));
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Error adding alias to recipe' });
+      res.status(500).json({ message: 'Error adding subcategory to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Remove a Subcategory from Recipe by Id
 export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, res:Response, next:Function) => {
-    const {id, subcategory_id} = req.params;
-    // Check if the id is a valid number (ID should be numeric) for now, will update when we use proper ids but works ok
+    const {id, subcategory_id} = req.params; // Step 1: get user input
 
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input. Check if the id is a valid number (ID should be numeric) for now, works ok
+    const subcategoryId = parseInt(subcategory_id, 10);
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
-    const subcategoryId = parseInt(subcategory_id, 10);
+    if (isNaN(subcategoryId)) {
+        res.status(400).json({ message: 'Invalid subcategory ID' });
+        return;
+    }
 
+    // Step 3: Fulfil Request
     try {
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
         await RecipeSubcategory.destroy({
-            where: { recipeId, subcategoryId }, // Delete aliases associated with this recipe
+            where: { recipeId, subcategoryId }, // Delete only the recipesubcategory with id subcategoryId for this recipe(recipeId)
         });
 
-        // Step 5: Return the updated recipe along with the new aliases
-        res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
+        res.status(204).json({message:`Deleted Subcategory with id ${subcategoryId} from recipe with id ${recipeId}`});
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
+        res.status(500).json({ message: 'Error removing subcategory for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
@@ -785,67 +778,66 @@ export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, 
 
 // Get Images of Recipe
 export const getRecipeImagesById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     let {limit=10,page=1} = req.query;
-    const recipeId = parseInt(id, 10);
-
+    
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
 
+    // Step 3: FUlfil Request
     try {
-
         // Validate limit and page to ensure they are numbers and within reasonable bounds
         limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
         page = Math.max(1, Number(page));
 
-
         // Sequelize query to fetch the filtered and sorted recipes with the required associations
-        const { count, rows } = await RecipeImage.findAndCountAll({
+        const rows  = await RecipeImage.findAll({
             where: { recipeId }, // Apply where conditions for filtering
             limit,
             offset: (page - 1) * limit,
         });
-
-        // If no results are found
-        if (!rows.length) {
+        if (!rows.length) { // If no results are found
             res.status(200).json({
                 totalResults: 0,
                 results: [],
             });
             return;
         }
-        res.status(200).json({
+        res.status(200).json({ // Return requested items and count (OR FAILURE) message
             totalResults: rows.length,
             results: rows,
         });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching recipe ingredients from the database' });
+        error = (error as Error);
+        res.status(500).json({ message: 'Error fetching recipe images from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Add new Images to Recipe
 export const addRecipeImageById = async(req:Request, res:Response) => {
-    const {id} = req.params;
+    const {id} = req.params; // Step 1: get user input
     const {images} = req.body;
 
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
 
+    // Step 3: Fulfil request
     try {
-        await handleRecipeImages(recipeId, images);
+        await handleRecipeImages(recipeId, images); // update RecipeImage DB by adding new RecipeImage Objects
   
-      // Step 4: Return the updated recipe along with the new aliases
+      // Step 4: Return the updated recipe, include success (OR FAILURE) message
       res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Error adding alias to recipe' });
+      res.status(500).json({ message: 'Error adding image to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
@@ -853,25 +845,29 @@ export const addRecipeImageById = async(req:Request, res:Response) => {
 
 // Remove Image of Recipe
 export const removeRecipeImageByIdandImageId = async(req:Request, res:Response) => {
-    const {id, image_id} = req.params;
+    const {id, image_id} = req.params; // Step 1: get user input
 
-    const recipeId = parseInt(id, 10);
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const imageId = parseInt(image_id, 10);
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
-    const imageId = parseInt(image_id, 10);
+    if (isNaN(imageId)) {
+        res.status(400).json({ message: 'Invalid image ID' });
+        return;
+    }
 
-    try {
-        // Step 3: Clear the current aliases (delete all existing aliases for this recipe)
-        await RecipeImage.destroy({
-            where: { recipeId, imageId }, // Delete aliases associated with this recipe
+    // Step 3: Fulfil request
+    try { 
+        await RecipeImage.destroy({ // Delete only the recipeimage with id imageId for this recipe(recipeId)
+            where: { recipeId, id:imageId }, 
         });
 
-        // Step 5: Return the updated recipe along with the new aliases
-        res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
+        res.status(204).json({message:`Deleted Image with id ${imageId} from recipe with id ${recipeId}`});
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error updating aliases for recipe' });
+        res.status(500).json({ message: `Error removing image-${imageId} for recipe`, error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }

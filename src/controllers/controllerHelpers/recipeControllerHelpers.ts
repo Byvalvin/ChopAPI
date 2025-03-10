@@ -264,6 +264,8 @@ export const handleRecipeImages = async (recipeId: number, images: Image[]): Pro
                     caption: caption || null,
                     addedAt: new Date()  // Automatically set the current date for addedAt
                 });
+            }else{
+                await existingImage.update({ url, type:type || null, caption: caption || null, updatedAt: new Date() });
             }
         }
     }

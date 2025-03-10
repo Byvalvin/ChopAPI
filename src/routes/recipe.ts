@@ -13,6 +13,7 @@ GET /chop/api/recipes?category=main
 GET /chop/api/recipes?category=main,vegetarian
 GET /chop/api/recipes?category=main,vegetarian&sub_category=spicy,gluten-free
 GET http://localhost:3000/chop/api/recipes?category=Main&sort=name&limit=2&page=1&search=recipe
+http://localhost:3000/chop/api/recipes?subcategory=spicy&category=main
 GET /chop/api/recipes?search=recipe  // Will search for 'recipe' in the main name
 GET /chop/api/recipes?search=alternative  // Will search for 'alternative' in both the main name and other names
 */
