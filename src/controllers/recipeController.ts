@@ -16,7 +16,8 @@ import RecipeImage from '../models/RecipeImage';
 import {
     validSortFields, stdInclude, 
     getRecipeDetails, generateRecipeFilterConditions,
-    handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories
+    handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories,
+    validateRecipeData
 } from './controllerHelpers/recipeControllerHelpers'
 
 
@@ -95,6 +96,11 @@ export const addRecipe = async (req: Request, res: Response) => {
         res.status(400).json({ message: 'Missing required fields' });
         return;
     }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
     
     // Step 3: Fulfil Request
     const { regionId, nationId } = await handleRegionAndNation(region, nation); // Handle Region and Nation
@@ -135,6 +141,10 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
     }
 
     const recipeId = parseInt(id, 10);  // Step 2: validate and parse user input, return if bad input. Convert ID to an integer
+    if (isNaN(recipeId)) {  
+        res.status(400).json({ message: "Invalid ID format" });
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {
@@ -164,15 +174,17 @@ export const replaceRecipeById = async (req: Request, res: Response, next: NextF
         res.status(400).json({ message: "Invalid ID format" });
         return;
     }
-
-    // Basic validation of required fields
-    if (!(name && description && nation && ingredients && instructions && time !== undefined)) {
-        res.status(400).json({
-            message: "Missing required fields: name, description, nation, ingredients, instructions, and time are required."
-        });
+    if (!(name && description && nation && ingredients && instructions && time !== undefined)) { // Basic validation of required fields
+        res.status(400).json({ message: "Missing required fields: name, description, nation, ingredients, instructions, and time are required." });
         return;
     }
-
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
+    
+    // Step 3: Fulfil Request
     try {
         // Find the recipe in the database
         const recipe = await Recipe.findOne({
@@ -239,6 +251,12 @@ export const updateRecipeById = async (req: Request, res: Response) => {
         res.status(400).json({ message: 'Invalid ID format' });
         return;
     }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
+    
 
     // Step 3: Fulfil Request
     try {
@@ -293,7 +311,6 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try {
-
         // Validate limit and page to ensure they are numbers and within reasonable bounds
         limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
         page = Math.max(1, Number(page));
@@ -388,6 +405,11 @@ export const replaceAliasForRecipeById = async (req: Request, res: Response) => 
       res.status(400).json({ message: 'Invalid recipe ID' });
       return;
     }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {
@@ -414,6 +436,11 @@ export const addAliasToRecipeById = async (req: Request, res: Response) => {
     if (isNaN(recipeId)) {
       res.status(400).json({ message: 'Invalid recipe ID' });
       return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
     }
 
     // Step 3: Fulfil Request
@@ -472,6 +499,11 @@ export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {
@@ -496,6 +528,11 @@ export const addRecipeIngredientsById = async(req:Request, res:Response) => {
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
         return;
     }
 
@@ -582,6 +619,11 @@ export const replaceRecipeInstructionsById = async(req:Request, res:Response) =>
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {
@@ -641,6 +683,11 @@ export const addRecipeCategoriesById = async(req:Request, res:Response) => {
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
         return;
     }
 
@@ -730,6 +777,11 @@ export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
         return;
     }
 
@@ -826,6 +878,11 @@ export const addRecipeImageById = async(req:Request, res:Response) => {
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // If validation fails, return the error message
         return;
     }
 

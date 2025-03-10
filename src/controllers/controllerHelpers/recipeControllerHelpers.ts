@@ -14,6 +14,7 @@ import RecipeSubcategory from '../../models/RecipeSubcategory';
 import RecipeInstruction from '../../models/RecipeInstruction';
 import RecipeAlias from '../../models/RecipeAlias';
 import RecipeImage from '../../models/RecipeImage';
+import { Request } from 'express';
 
 
 // Valid columns for sorting
@@ -25,86 +26,164 @@ export const stdInclude : Includeable[] = [
         through: { attributes: [] }, // Exclude the join table
         attributes: ['name'],
     },
-    {
-        model: Subcategory,
+    { model: Subcategory,
         through: { attributes: [] }, // Exclude the join table
         attributes: ['name'],
     },
-    {
-        model: RecipeInstruction,
+    { model: RecipeInstruction,
         attributes: ['step', 'instruction'],  // Fetch step and instruction
         order: [['step', 'ASC']], // Ensure they're sorted by step
     },
     { model: RecipeAlias, attributes: ['alias'], },
     { model: RecipeImage, attributes: ['url', 'type', 'caption'], },
-    {
-        model: Ingredient,
+    { model: Ingredient,
         through: { attributes: ['quantity', 'unit'] },
         attributes: ['name'],
     },
 ];
 
 // Validation Helper
-// export const validateRecipeData = (data: any) => {
-//     const { name, description, nation, ingredients, instructions, region, aliases, categories, subcategories, images, time, cost } = data;
+export const validateRecipeData = (data: any) => {
+    const { name, description, nation, ingredients, instructions, region, aliases, categories, subcategories, images, time, cost } = data;
 
-//     // Basic field validation (only validate required fields if they are present)
-//     if (name && typeof name !== 'string') return { message: "Invalid data type: name must be a string." };
-//     if (description && typeof description !== 'string') return { message: "Invalid data type: description must be a string." };
-//     if (nation && typeof nation !== 'string') return { message: "Invalid data type: nation must be a string." };
+    // Basic field validation (only validate required fields if they are present)
+    if (name && typeof name !== 'string') return { message: "Invalid data type: name must be a string." };
+    if (description && typeof description !== 'string') return { message: "Invalid data type: description must be a string." };
+    if (nation && typeof nation !== 'string') return { message: "Invalid data type: nation must be a string." };
     
-//     // Validate ingredients and instructions only if provided
-//     if (ingredients && !Array.isArray(ingredients)) return { message: "Invalid data type: ingredients must be an array." };
-//     if (instructions && !Array.isArray(instructions)) return { message: "Invalid data type: instructions must be an array." };
-//     if (instructions) { // Validate each instruction (if provided)
-//         for (const instruction of instructions as string[]) {
-//             if (typeof instruction !== 'string') return { message: 'Each instruction must have a valid text (string)' };   
-//         }
-//     }
-//     if (ingredients) { // Ensure each ingredient has a valid structure (if provided)
-//         for (const ingredient of ingredients as RecipeIngredient[]) {
-//             if (typeof ingredient.name !== 'string') return { message: 'Each ingredient must have a valid name' };
-//             if (typeof ingredient.quantity !== 'number') return { message: 'Each ingredient must have a valid quantity (number)' };
-//             if (typeof ingredient.unit !== 'string') return { message: 'Each ingredient must have a valid unit (string)' };
-//         }
-//     }
-//     if (ingredients && ingredients.length === 0) return { message: "Ingredients cannot be empty." };
-//     if (instructions && instructions.length === 0) return { message: "Instructions cannot be empty." };
-//     if (time !== undefined && (typeof time !== 'number' || time <= 0)) return { message: "Invalid time value: time must be a positive number." }; // Validate time (only if provided)
+    // Validate ingredients and instructions only if provided
+    if (ingredients && !Array.isArray(ingredients)) return { message: "Invalid data type: ingredients must be an array." };
+    if (instructions && !Array.isArray(instructions)) return { message: "Invalid data type: instructions must be an array." };
+    if (instructions) { // Validate each instruction (if provided)
+        for (const instruction of instructions as string[]) {
+            if (typeof instruction !== 'string') return { message: 'Each instruction must have a valid text (string)' };   
+        }
+    }
+    if (ingredients) { // Ensure each ingredient has a valid structure (if provided)
+        for (const ingredient of ingredients as RecipeIngredientI[]) {
+            if (typeof ingredient.name !== 'string') return { message: 'Each ingredient must have a valid name' };
+            if (typeof ingredient.quantity !== 'number') return { message: 'Each ingredient must have a valid quantity (number)' };
+            if (typeof ingredient.unit !== 'string') return { message: 'Each ingredient must have a valid unit (string)' };
+        }
+    }
+    if (ingredients && ingredients.length === 0) return { message: "Ingredients cannot be empty." };
+    if (instructions && instructions.length === 0) return { message: "Instructions cannot be empty." };
+    if (time !== undefined && (typeof time !== 'number' || time <= 0)) return { message: "Invalid time value: time must be a positive number." }; // Validate time (only if provided)
 
-//     // Validate optional fields
-//     if (region && typeof region !== 'string') return { message: "Invalid data type: region must be a string." };
-//     if (aliases && !Array.isArray(aliases)) return { message: "Invalid data type: aliases must be an array." };
-//     if (aliases) { // Validate each alias (if provided)
-//         for (const alias of aliases as string[]) {
-//             if (typeof alias !== 'string') return { message: 'Each alias must be a (string)' };
-//         }
-//     }
-//     if (categories && !Array.isArray(categories)) return { message: "Invalid data type: categories must be an array." };
-//     if (categories) { // Validate each category (if provided)
-//         for (const category of categories as string[]) {
-//             if (typeof category !== 'string') return { message: 'Each category must be a (string)' };
-//         }
-//     }
-//     if (subcategories && !Array.isArray(subcategories)) return { message: "Invalid data type: subcategories must be an array." };
-//     if (subcategories) { // Validate each subcategory (if provided)
-//         for (const subcategory of subcategories as string[]) {
-//             if (typeof subcategory !== 'string') return { message: 'Each subcategory must be a (string)' };
-//         }
-//     }
-//     if (images && !Array.isArray(images)) return { message: "Invalid data type: images must be an array." };
-//     if (images) { // Validate each image (if provided)
-//         for (const image of images as Image[]) {
-//             if (typeof image.url !== 'string') return { message: 'Each image must have a valid URL (string)' };
-//             if (typeof image.type !== 'string') return { message: 'Each image must have a valid type (string)' };
-//             if (typeof image.caption !== 'string') return { message: 'Each image must have a valid caption (string)' };
-//         }
-//     }
-//     if (cost !== undefined && (typeof cost !== 'number' || cost < 0)) return { message: "Invalid cost value: cost must be a non-negative number." };// Validate cost (only if provided)
+    // Validate optional fields
+    if (region && typeof region !== 'string') return { message: "Invalid data type: region must be a string." };
+    if (aliases && !Array.isArray(aliases)) return { message: "Invalid data type: aliases must be an array." };
+    if (aliases) { // Validate each alias (if provided)
+        for (const alias of aliases as string[]) {
+            if (typeof alias !== 'string') return { message: 'Each alias must be a (string)' };
+            if (!alias || alias.length === 0) return { message: 'Alias cannot be empty string' };
+        }
+    }
+    if (categories && !Array.isArray(categories)) return { message: "Invalid data type: categories must be an array." };
+    if (categories) { // Validate each category (if provided)
+        for (const category of categories as string[]) {
+            if (typeof category !== 'string') return { message: 'Each category must be a (string)' };
+        }
+    }
+    if (subcategories && !Array.isArray(subcategories)) return { message: "Invalid data type: subcategories must be an array." };
+    if (subcategories) { // Validate each subcategory (if provided)
+        for (const subcategory of subcategories as string[]) {
+            if (typeof subcategory !== 'string') return { message: 'Each subcategory must be a (string)' };
+        }
+    }
+    if (images && !Array.isArray(images)) return { message: "Invalid data type: images must be an array." };
+    if (images) { // Validate each image (if provided)
+        for (const image of images as Image[]) {
+            if (typeof image.url !== 'string') return { message: 'Each image must have a valid URL (string)' };
+            if (image.type && typeof image.type !== 'string') return { message: 'Each image must have a valid type (string)' };
+            if (image.caption && typeof image.caption !== 'string') return { message: 'Each image must have a valid caption (string)' };
+        }
+    }
+    if (cost !== undefined && (typeof cost !== 'number' || cost < 0)) return { message: "Invalid cost value: cost must be a non-negative number." };// Validate cost (only if provided)
 
-//     return undefined; // If all validations pass
-// };
+    return undefined; // If all validations pass
+};
 
+
+// Helper function to validate and parse the query parameters
+export const validateQueryParams = (req: Request) => {
+    const { category, subcategory, nation, region, time, cost, sort, limit = '10', page = '1', search} = req.query;
+  
+    // Initialize the errors object
+    const errors: string[] = [];
+  
+    // Validate category (should be a string if provided)
+    if (category && typeof category !== 'string') {
+      errors.push('Category must be a string');
+    }
+  
+    // Validate subcategory (should be a string if provided)
+    if (subcategory && typeof subcategory !== 'string') {
+      errors.push('Subcategory must be a string');
+    }
+  
+    // Validate nation (should be a string if provided)
+    if (nation && typeof nation !== 'string') {
+      errors.push('Nation must be a string');
+    }
+  
+    // Validate region (should be a string if provided)
+    if (region && typeof region !== 'string') {
+      errors.push('Region must be a string');
+    }
+  
+    // Validate time (should be a valid integer and greater than 0 if provided)
+    if (time && (isNaN(Number(time)) || Number(time) <= 0)) {
+      errors.push('Time must be a positive number');
+    }
+  
+    // Validate cost (should be a valid number and greater than or equal to 0 if provided)
+    if (cost && (isNaN(Number(cost)) || Number(cost) < 0)) {
+      errors.push('Cost must be a non-negative number');
+    }
+  
+    // Validate limit (should be a valid positive integer)
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      errors.push('Limit must be a positive integer');
+    }
+  
+    // Validate page (should be a valid positive integer)
+    const parsedPage = parseInt(page, 10);
+    if (isNaN(parsedPage) || parsedPage <= 0) {
+      errors.push('Page must be a positive integer');
+    }
+  
+    // Validate search (should be a string if provided)
+    if (search && typeof search !== 'string') {
+      errors.push('Search term must be a string');
+    }
+  
+    // Return errors if any
+    if (errors.length > 0) {
+      return {
+        isValid: false,
+        errors,
+      };
+    }
+  
+    // Return parsed and sanitized query parameters if valid
+    return {
+      isValid: true,
+      queryParams: {
+        category: category ? normalizeString(category) : undefined,
+        subcategory: subcategory ? normalizeString(subcategory) : undefined,
+        nation: nation ? normalizeString(nation) : undefined,
+        region: region ? normalizeString(region) : undefined,
+        time: time ? parseInt(time, 10) : undefined,
+        cost: cost ? parseFloat(cost) : undefined,
+        sort: sort ? normalizeString(sort) : undefined,
+        limit: parsedLimit,
+        page: parsedPage,
+        search: search ? normalizeString(search) : undefined,
+      },
+    };
+  };
 
 
 // Helper to handle Ingredients (Update or Insert)
