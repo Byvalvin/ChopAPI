@@ -1,5 +1,5 @@
 import { normalizeString } from '../../utils';
-import { Recipe as RecipeI, RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
+import { RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
 import Recipe from '../../models/Recipe';  // Import the Recipe model
 import { Op, Includeable } from 'sequelize';
 import Ingredient from '../../models/Ingredient';
@@ -16,6 +16,7 @@ import RecipeAlias from '../../models/RecipeAlias';
 import RecipeImage from '../../models/RecipeImage';
 import { Request } from 'express';
 
+import {getRecipeCache, setRecipeCache} from '../../caching/redisCaching'
 
 // Valid columns for sorting
 export const validSortFields = ['name', 'time', 'cost'];
@@ -422,6 +423,11 @@ export const generateRecipeFilterConditions = (queryParams: any) => {
 // Refactor the getRecipeDetails function to support dynamic includes and safe access, default include everything(stdInclude)
 export const getRecipeDetails = async (recipeId: number, customInclude: Includeable[] = stdInclude) => {
     try {
+        const cachedData = await getRecipeCache(recipeId); // Check if recipe is cached
+        if (cachedData) { // Return cached data
+            return cachedData; 
+        }
+
         // Combine default `stdInclude` with any custom includes provided
         const includeArray = customInclude;
 
@@ -445,8 +451,7 @@ export const getRecipeDetails = async (recipeId: number, customInclude: Includea
             Ingredients?: { name: string; recipe_ingredients: { quantity: number; unit: string } }[];
         };
 
-        // Return the recipe in the required format, with optional chaining to avoid null errors
-        return {
+        const detailedRecipe = {
             id: recipe.id,
             name: recipe.name,
             description: recipe.description,
@@ -471,6 +476,12 @@ export const getRecipeDetails = async (recipeId: number, customInclude: Includea
                 unit: ingredient.recipe_ingredients.dataValues?.unit, // Safely access recipe_ingredients
             })) || [], // Safely map ingredients
         };
+        // Cache the recipe details after fetching from DB, update cache since there was no prev cachedData
+        await setRecipeCache(recipeId, detailedRecipe); 
+
+
+        // Return the recipe in the required format, with optional chaining to avoid null errors
+        return detailedRecipe;
     } catch (error) {
         console.error(error);
         throw new Error('Error fetching detailed recipe data');

@@ -2,7 +2,7 @@ import { NextFunction, Request,Response  } from 'express';
 import { normalizeString } from '../utils';
 import { Image } from '../interface';
 import Recipe from '../models/Recipe';  // Import the Recipe model
-import {Op, Includeable } from 'sequelize';
+import { Op, Includeable } from 'sequelize';
 import Ingredient from '../models/Ingredient';
 import RecipeIngredient from '../models/RecipeIngredient';
 import Category from '../models/Category';
@@ -20,6 +20,8 @@ import {
     validateRecipeData,
     validateQueryParams
 } from './controllerHelpers/recipeControllerHelpers'
+
+import { getRecipeCache, setRecipeCache, invalidateRecipeCache } from '../caching/redisCaching';
 
 
 // Main endpoint to get all recipes
@@ -52,6 +54,7 @@ export const getAllRecipes = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
+        
         const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where and include conditions using the helper function
 
         const rows = await Recipe.findAll({ // Fetching recipe IDs based on dynamic conditions
@@ -130,6 +133,9 @@ export const addRecipe = async (req: Request, res: Response) => {
         await handleRecipeInstructions(newRecipe.id, instructions);
         await handleRecipeAliases(newRecipe.id, aliases);
         await handleRecipeImages(newRecipe.id, images);
+
+        // Invalidate the old cache
+        await invalidateRecipeCache(newRecipe.id);
 
         // Return response with the new recipe's ID
         res.status(201).json({ message: `Recipe added with ID: ${newRecipe.id}` });
@@ -240,6 +246,9 @@ export const replaceRecipeById = async (req: Request, res: Response, next: NextF
             cost: cost || 0,
         });
 
+        // Invalidate the old cache
+        await invalidateRecipeCache(recipeId);
+
         // Return the updated recipe data
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -298,7 +307,9 @@ export const updateRecipeById = async (req: Request, res: Response) => {
             regionId,  // Update regionId after resolving region
             nationId,  // Update nationId after resolving nation
         });
-
+        // Invalidate the old cache
+        await invalidateRecipeCache(recipeId);
+        
         // Step 4: Return the updated recipe details
         const updatedRecipe = await getRecipeDetails(recipeId);
         res.status(200).json(updatedRecipe);

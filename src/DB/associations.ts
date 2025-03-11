@@ -19,20 +19,18 @@ export default function setupAssociations() {
     Recipe.hasMany(RecipeAlias, { foreignKey: 'recipeId' });
     Recipe.belongsToMany(Category, { through: 'recipe_categories', foreignKey: 'recipeId' });
     Recipe.belongsToMany(Subcategory, { through: 'recipe_subcategories', foreignKey: 'recipeId' });
-    // In Recipe model
-Recipe.belongsToMany(Ingredient, {
-    through: 'recipe_ingredients', // The join table
-    foreignKey: 'recipeId',
-    otherKey: 'ingredientId',
-  });
+    Recipe.belongsToMany(Ingredient, {
+        through: 'recipe_ingredients', // The join table
+        foreignKey: 'recipeId',
+        otherKey: 'ingredientId',
+    });
 
     // Ingredient
-// In Ingredient model
-Ingredient.belongsToMany(Recipe, {
-    through: 'recipe_ingredients',
-    foreignKey: 'ingredientId',
-    otherKey: 'recipeId',
-  });
+    Ingredient.belongsToMany(Recipe, {
+        through: 'recipe_ingredients',
+        foreignKey: 'ingredientId',
+        otherKey: 'recipeId',
+    });
     // Category
     Category.belongsToMany(Recipe, { through: 'recipe_categories', foreignKey: 'categoryId' });
 
@@ -47,7 +45,6 @@ Ingredient.belongsToMany(Recipe, {
     RecipeImage.belongsTo(Recipe, { foreignKey: 'recipeId' });
 
     // Nation
-    
     Nation.hasMany(Recipe, { foreignKey: 'nationId' }); // Nation has many Recipes (in reverse association)
     Nation.belongsToMany(Region, { through: 'RegionNation', foreignKey: 'nationId' });
 
@@ -59,6 +56,5 @@ Ingredient.belongsToMany(Recipe, {
     RegionNation.belongsTo(Region, { foreignKey: 'regionId' });
     RegionNation.belongsTo(Nation, { foreignKey: 'nationId' });
 
-    console.log("Associations setup!");
-
+    console.log("Table Associations setup!");
 }
