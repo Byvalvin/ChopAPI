@@ -36,10 +36,10 @@ export const stdInclude : Includeable[] = [
         order: [['step', 'ASC']], // Ensure they're sorted by step
     },
     { model: RecipeAlias, attributes: ['alias'], },
-    { model: RecipeImage, attributes: ['url', 'type', 'caption'], },
+    { model: RecipeImage, attributes: ['id', 'url', 'type', 'caption'], },
     { model: Ingredient,
         through: { attributes: ['quantity', 'unit'] },
-        attributes: ['name'],
+        attributes: ['id','name'],
     },
 ];
 
