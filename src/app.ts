@@ -3,13 +3,17 @@ import logger from './middleware/logger'; // Import the custom logger
 import sequelize from './DB/connection'; // Import the authenticated Sequelize instance
 import setupAssociations from './DB/associations';
 
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './openapiDoc';
 
 const app = express();
 const baseURL = '/chop/api';
+const openapiDocURL = `${baseURL}/docs`;
 
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
+app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(logger); // Use the custom logging middleware
 
 // Check if sequelize is already initialized
@@ -36,8 +40,8 @@ if (sequelize) {
 
 // Add your routes here
 // Define your routes here (e.g., for Recipes, Ingredients, etc.)
-app.get('/', (req, res) => {
-  res.send("Welcome to the ChopAPI");
+app.get(`${baseURL}`, (req, res) => {
+  res.send("Welcome to the ChopAPI!\n Go to /chop/api");
 });
 
 // ROUTES

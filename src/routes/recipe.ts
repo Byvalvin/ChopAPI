@@ -21,7 +21,134 @@ GET /chop/api/recipes?search=alternative  // Will search for 'alternative' in bo
 const router = Router();
 
 //ROUTES
-router.get('/',  getAllRecipes); // GET /chop/api/recipes: Description: Fetch all available recipes. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, search.
+
+/**
+ * @swagger
+ * /chop/api/recipes:
+ *   get:
+ *     summary: Fetch all available recipes.
+ *     description: |
+ *       Fetch a list of all available recipes. You can filter recipes by various parameters such as category, subcategory, nation, region, time, cost, and more.
+ *     parameters:
+ *       - name: category
+ *         in: query
+ *         description: Filter recipes by category.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: subcategory
+ *         in: query
+ *         description: Filter recipes by subcategory.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: nation
+ *         in: query
+ *         description: Filter recipes by nation.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: region
+ *         in: query
+ *         description: Filter recipes by region.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: time
+ *         in: query
+ *         description: Filter recipes by preparation time.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: cost
+ *         in: query
+ *         description: Filter recipes by cost.
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: sort
+ *         in: query
+ *         description: Specify the field to sort by (e.g., name).
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - name
+ *             - time
+ *             - cost
+ *       - name: limit
+ *         in: query
+ *         description: Number of recipes to fetch per page. Defaults to 10, max is 100.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *           maximum: 100
+ *       - name: page
+ *         in: query
+ *         description: The page number of results to retrieve. Defaults to 1.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *     responses:
+ *       200:
+ *         description: A list of recipes with detailed information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalResults:
+ *                   type: integer
+ *                   description: Total number of recipes that match the filters.
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: The unique identifier of the recipe.
+ *                       name:
+ *                         type: string
+ *                         description: The name of the recipe.
+ *                       description:
+ *                         type: string
+ *                         description: A short description of the recipe.
+ *                       ingredients:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           description: List of ingredients for the recipe.
+ *       400:
+ *         description: Invalid query parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       500:
+ *         description: Internal server error while fetching recipes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ *     tags:
+ *       - Recipes
+ */
+router.get('/',  getAllRecipes); // GET /chop/api/recipes: Description: Fetch all available recipes. Query parameters: Filter by category, subcategory, nation, region, time, cost, sort, limit, page, search.
 router.post('/', addRecipe); // POST /chop/api/recipes: Description: Add a new recipe. Request body with new recipe data.
 
 router.get('/:id', getRecipeById); // GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
