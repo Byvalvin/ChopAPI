@@ -10,6 +10,7 @@ Vercel
 Redis
 
 
+NOTES
 npx tsc
 npx tsc --init
 npx tsc --version
@@ -19,6 +20,14 @@ npm install typescript ts-node express @types/express
 npm config set cache ./local/scratch/Chop/npmCACHE --global
 npm config get cache
 npm install --save-dev
+
+When to use --save-dev:
+
+You should use --save-dev when you are installing packages that are only needed during development, like:
+    Testing libraries (e.g., jest, mocha)
+    Build tools (e.g., webpack, gulp)
+    Code linters (e.g., eslint)
+    Documentation generators (e.g., jsdoc)
 
 //SEQUELISEING WITH TS
 npm install sequelize pg pg-hstore

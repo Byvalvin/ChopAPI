@@ -175,6 +175,7 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+// Replace the old recipe at id with a new one at id
 export const replaceRecipeById = async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params; // Step 1: get user input
     const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Get user data from the request body
@@ -475,7 +476,7 @@ export const addAliasToRecipeById = async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error adding alias to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
-  };
+};
 
 // Get Ingredients for a specific Recipe
 export const getRecipeIngredientsById = async (req: Request, res: Response) => {
@@ -643,7 +644,6 @@ export const getRecipeInstructionsById = async (req:Request, res:Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error fetching recipe instructions from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }  
-
 }
 
 // Replace the Instructions for a Recipe

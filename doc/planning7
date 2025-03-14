@@ -7,7 +7,7 @@ Main Tables:
 - Subcategory: Id(Primary Key), Name
 
 Junction Tables:
-- Recipe_Other_Names: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Other_Name (The alternate name or alias)
+- Recipe_Aliases: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Alias (The alternate name or alias)
 - Recipe_Ingredients: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Ingredient_Id(Foreign Key to Ingredient), Amount, Unit
 - Recipe_Instructions: Id (Primary Key), Recipe_Id(Foreign Key to Recipe), Step(Step number), Instruction(The actual instruction text)
 - Recipe_Images: Id(Primary Key), Recipe_Id (Foreign Key to Recipe), Url, Type, Caption, Added_At
@@ -26,16 +26,28 @@ Recipes Endpoints:
     GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
     PUT /chop/api/recipes/{id}: Description: Replace recipe by id. Request body with updated recipe data.
     PATCH /chop/api/recipes/{id}: Description: Edit recipe by id. Request body with updated recipe data.
-    GET /chop/api/recipes/{name}: Description: Fetch all recipes with the given name(checks both Name and other names). Query parameters: Filter by category, sub_category, nation, region, time, cost, limit, page, search.
+    GET /chop/api/recipes/{name}: Description: Fetch all recipes with the given name(checks both Name and other names). Query parameters: Filter by category, sub_category, nation, region, time, cost, limit, page, sort.
     GET /chop/api/recipes/{id}/names: Description: Fetch all available names for a recipe. No query parameters.
+    POST /chop/api/recipes/{id}/names: Description: REplace aliases for a recipe. No query parameters
+    PUT /chop/api/recipes/{id}/names: Description: Add another alias for a recipe. No query parameters.
+    GET /chop/api/recipes/{id}/ingredients: Description: Fetch the ingredients for a recipe. No query parameters.
+    POST /chop/api/recipes/{id}/ingredients: Description: Replace the ingredients for a recipe. Request body with new ingredients.
+    PUT /chop/api/recipes/{id}/ingredients: Description: Add another ingredient for a recipe. Request body with new ingredients.
+    PATCH /chop/api/recipes/{id}/ingredients/{ingredient_id}: Description: Edit a specific ingredient for a recipe. Request body with updated ingredients.
+    DELETE /chop/api/recipes/{id}/ingredients/{ingredient_id}: Description: Remove aningredient for a recipe by ingredient id. No query parameters.
     GET /chop/api/recipes/{id}/instructions: Description: Fetch the instructions of a recipe. No query parameters.
     PUT /chop/api/recipes/{id}/instructions: Description: Replace the instructions of a recipe. Request body with new instructions data.
-    PATCH /chop/api/recipes/{id}/instructions: Description: Edit the instructions of a recipe. Request body with updated instructions data.
-    GET /chop/api/recipes/{id}/ingredients: Description: Fetch the ingredients for a recipe. No query parameters.
-    PUT /chop/api/recipes/{id}/ingredients: Description: Replace the ingredients for a recipe. Request body with new ingredients.
-    PATCH /chop/api/recipes/{id}/ingredients: Description: Edit the ingredients for a recipe. Request body with updated ingredients.
-    GET /chop/api/recipes/{id}/images: Description: Fetch all available images for a recipe. Query parameters: limit.
+    GET /chop/api/recipes/{id}/categories: Description: Fetch all categories for a recipe. No query parameters.
+    PUT /chop/api/recipes/{id}/categories: Description: Add more categories for a recipe. No query parameters.
+    DELETE /chop/api/recipes/{id}/categories/{category_id}: Description: Remove category from recipe by category id. No query parameters.
+    DELETE /chop/api/recipes/{id}/categories/{category_name}: Description: Remove category from recipe by category name. No query parameters.
+    GET /chop/api/recipes/{id}/subcategories: Description: Fetch all subcategories for a recipe. No query parameters.
+    PUT /chop/api/recipes/{id}/subcategories: Description: Add more subcategories for a recipe. No query parameters.
+    DELETE /chop/api/recipes/{id}/subcategories/{subcategory_id}: Description: Remove subcategory from recipe by subcategory id. No query parameters.
+    DELETE /chop/api/recipes/{id}/subcategories/{subcategory_name}: Description: Remove subcategory from recipe by subcategory name. No query parameters.
+    GET /chop/api/recipes/{id}/images: Description: Fetch all available images for a recipe. Query parameters: limit, page.
     POST /chop/api/recipes/{id}/images: Description: Add new image for a recipe. Request body with image data.
+    DELETE /chop/api/recipes/{id}/images/{image_id}: Description: Remove image from recipe by image id. No query parameters.
 
 Ingredients Endpoints:
     GET /chop/api/ingredients: Description: Fetch all available ingredients. Query parameters: sort, limit, page, search.

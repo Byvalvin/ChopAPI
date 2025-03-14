@@ -7,21 +7,20 @@ const swaggerOptions = {
         info: {
             title: 'Chop API',
             version: '1.0.0',
-            description: 'API for managing recipes, ingredients, categories, etc.',
+            description: 'API for African & Carribean Cuisine',
             contact: {
-            name: 'Your Name',
-            url: 'https://yourwebsite.com',
-            email: 'youremail@example.com',
+                name: 'Byvalvin',
+                url: 'https://byvalvin.github.io',
             },
             license: {
-            name: 'Licensed Under MIT',
-            url: 'https://spdx.org/licenses/MIT.html',
+                name: 'Licensed Under MIT',
+                url: 'https://spdx.org/licenses/MIT.html',
             },
         },
         servers: [
             {
                 url: 'http://localhost:3000',
-                description: 'Development server',
+                description: 'Local Development server',
             },
         ],  
     },
@@ -34,6 +33,10 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Log the OpenAPI spec to the console
-console.log('Generated OpenAPI Specification: ', JSON.stringify(swaggerSpec, null, 2));
+if(swaggerSpec){
+    console.log('Generated OpenAPI Specification');
+}else{
+    console.error('Error Generation OpenAPI Specifications')
+}
 
 export default swaggerSpec;
