@@ -6,6 +6,7 @@ import Ingredient from '../models/Ingredient';
 import Recipe from '../models/Recipe';
 import { Op } from 'sequelize';
 import { normalizeString } from '../utils';
+import RecipeIngredient from '../models/RecipeIngredient';
 
 // Dummy data for ingredients
 let ingredientDB: IngredientI[] = [
@@ -81,20 +82,21 @@ export const getAllIngredients = async(req: Request, res: Response) => {
 
 
 
-// Get Ingredients with a given name
-export const getRecipeThatUseIngredientByName = async (req: Request, res: Response) => { // NEED TO FIX TO LOOK AT INGREDIENT NAMES AND NOT RECIPE NAMES
-    const { ingredient_name } = req.params; // Step 1: get user input. Extract the name from the request params
-    const {isValid, queryParams, errors} = validateQueryParams(req);
+// Get Recipes using a given ingredient name
+export const getRecipeThatUseIngredientByName = async (req: Request, res: Response) => {
+    const { ingredient_name } = req.params; // Extract ingredient name from URL parameter
+    const { isValid, queryParams, errors } = validateQueryParams(req); // Validate query parameters
 
-    // Step 2: validate and parse user input, return if bad input
-    if (!isValid) { // If validation failed, return the errors
+    // Step 2: Validate and parse query params
+    if (!isValid) {
         res.status(400).json({ errors: errors });
         return;
     }
-    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1} = queryParams; 
-            
-    // Validate limit and page to ensure they are numbers and within reasonable bounds
-    limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
+    
+    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1 } = queryParams;
+    
+    // Validate limit and page to ensure they're reasonable
+    limit = Math.max(1, Math.min(Number(limit), 100)); // Max 100 recipes per page
     page = Math.max(1, Number(page));
 
     // Apply sorting
@@ -102,25 +104,33 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
     if (sort) {
         order = [[sort, 'ASC']];
     } else {
-        // Default sorting by name if no sort is provided
-        order = [['name', 'ASC']];
+        order = [['name', 'ASC']]; // Default sorting by recipe name
     }
-    const normalizedSearchTerm = normalizeString(ingredient_name); // Normalize the name parameter from the request
 
-    // Step 3: Fulfil Request
+    const normalizedSearchTerm = normalizeString(ingredient_name); // Normalize the search term for consistency
+
+    // Step 3: Fulfill the request and query the database
     try {
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
-        whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the recipe name
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate filter conditions
 
-        const rows  = await Recipe.findAll({ // Sequelize query to fetch the filtered and sorted recipes with the required associations
-            where: whereConditions, // Apply where conditions for filtering
-            include: includeConditions.length ? includeConditions : stdInclude, // Apply include conditions for associations
+        // Fetch recipes using Sequelize's `include` to join with Ingredients
+        const rows = await Recipe.findAll({
+            where: whereConditions, // Filtering recipes by conditions
+            include: [
+                ...includeConditions,  // Include any other conditions you might need
+                {
+                    model: Ingredient,
+                    through: { attributes: ['quantity','unit'] },
+                    where: { name: { [Op.iLike]: `%${normalizedSearchTerm}%` } }, // Join with ingredients based on name
+                    required: true, // Ensures we only get recipes that include this ingredient
+                },
+            ],
             limit,
             offset: (page - 1) * limit,
-            order: order, // Apply ordering
+            order: order, // Sorting based on user input
         });
-        
-        if (!rows.length) { // If no recipes are found, return an empty result
+
+        if (!rows.length) {
             res.status(200).json({
                 totalResults: 0,
                 results: []
@@ -128,17 +138,17 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
             return;
         }
 
-        const detailedRecipes = await Promise.all( // Fetch detailed recipe data using the getRecipeDetails function
+        // Step 4: Fetch detailed recipe data
+        const detailedRecipes = await Promise.all(
             rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
         );
 
-        // Step 4: Return the paginated results with detailed recipe data
         res.status(200).json({
             totalResults: detailedRecipes.length,
             results: detailedRecipes
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: `Error fetching recipes with name ${ingredient_name} from the database`, error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: `Error fetching recipes with ingredient ${ingredient_name}`, error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 };
