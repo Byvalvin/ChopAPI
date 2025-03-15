@@ -17,6 +17,7 @@ RegionNation.init(
         key: 'id',
       },
       allowNull: false,
+      primaryKey: true, // This makes regionId part of the composite primary key
     },
     nationId: {
       type: DataTypes.INTEGER,
@@ -25,6 +26,7 @@ RegionNation.init(
         key: 'id',
       },
       allowNull: false,
+      primaryKey: true, // This makes nationId part of the composite primary key
     },
   },
   {
@@ -37,6 +39,8 @@ RegionNation.init(
         fields: ['regionId', 'nationId'], // Composite unique index for regionId + nationId
       },
     ],
+    // Disable the default id column as you're using composite primary keys
+    timestamps: true, // You can keep this if you want to track createdAt/updatedAt
   }
 );
 

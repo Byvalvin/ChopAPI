@@ -51,4 +51,16 @@ app.use(`${baseURL}/recipes`, recipeRoutes); // RECIPES
 import ingredientRoutes from './routes/ingredient'; 
 app.use(`${baseURL}/ingredients`, ingredientRoutes); // INGREDIENTS
 
+import categoryRoutes from './routes/category'; 
+app.use(`${baseURL}/categories`, categoryRoutes); // CATEGORIES
+
+import subcategoryRoutes from './routes/subcategory'; 
+app.use(`${baseURL}/subcategories`, subcategoryRoutes); // SUBCATEGORIES
+
+import regionRoutes from './routes/region'; 
+app.use(`${baseURL}/regions`, regionRoutes); // REGIONS
+
+import nationRoutes from './routes/nation'; 
+app.use(`${baseURL}/nations`, nationRoutes); // NATIONS
+
 export default app;

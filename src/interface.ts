@@ -6,7 +6,7 @@ export interface Nation{
 export interface Region{
     id: number,
     name: string,
-    nations: string[]
+    nations: Nation[]
 }
 export interface Category {
     id: number;

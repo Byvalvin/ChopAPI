@@ -46,11 +46,11 @@ export default function setupAssociations() {
 
     // Nation
     Nation.hasMany(Recipe, { foreignKey: 'nationId' }); // Nation has many Recipes (in reverse association)
-    Nation.belongsToMany(Region, { through: 'RegionNation', foreignKey: 'nationId' });
+    Nation.belongsToMany(Region, { through: 'region_nations', foreignKey: 'nationId' });
 
     // Region
     Region.hasMany(Recipe, { foreignKey: 'regionId' }); // Region has many Recipes (in reverse association)
-    Region.belongsToMany(Nation, { through: 'RegionNation', foreignKey: 'regionId' });
+    Region.belongsToMany(Nation, { through: 'region_nations', foreignKey: 'regionId' });
 
     // RegionNation
     RegionNation.belongsTo(Region, { foreignKey: 'regionId' });

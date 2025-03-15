@@ -40,7 +40,7 @@ export const getAllIngredients = async(req: Request, res: Response) => {
     try { // Sequelize findAll query with dynamic conditions and sorting
         const { whereConditions, includeConditions } = generateIngredientFilterConditions(req.query); // Generate the where and include conditions using the helper function
 
-        const rows = await Ingredient.findAll({ // Fetching recipe IDs based on dynamic conditions
+        const rows = await Ingredient.findAll({ // Fetching ingredients based on dynamic conditions
             where: whereConditions, // Apply where conditions
             include: includeConditions, // Apply include conditions (associations)
             limit,
@@ -57,7 +57,7 @@ export const getAllIngredients = async(req: Request, res: Response) => {
             return;
         }
 
-        // Step 4: Return paginated results with detailed recipes
+        // Step 4: Return paginated results
         res.status(200).json({
             totalResults: rows.length,
             results: rows,

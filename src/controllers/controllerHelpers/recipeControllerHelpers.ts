@@ -407,18 +407,3 @@ export const getRecipeDetails = async (recipeId: number, customInclude: Includea
     }
 };
 
-
-// Simple validation for aliases
-const validateAliases = (aliases: string[]) => {
-    if (!aliases || aliases.length === 0) {
-      return { message: 'Aliases cannot be empty' };
-    }
-    return null;
-  };
-// helper for specific ingredient updates
-// if (typeof ingredient.name !== 'string') return { message: 'Each ingredient must have a valid name' };
-const validateIngredient = (ingredient : RecipeIngredientI) => { // assumes name is proper
-    if (typeof ingredient.quantity !== 'number') return { message: 'Each ingredient must have a valid quantity (number)' };
-    if (typeof ingredient.unit !== 'string') return { message: 'Each ingredient must have a valid unit (string)' };
-    return undefined;
-}

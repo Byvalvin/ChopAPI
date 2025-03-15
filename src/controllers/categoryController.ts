@@ -23,14 +23,16 @@ export const getAllCategories = async(req: Request, res: Response) => {
 
     // Handle sort parameter
     let order: any = [];
-    // Check if sort is a string and if it's valid
     if (sort) {
-        order = [['name', 'ASC']];
+        order = [[sort, 'ASC']];
+    } else {
+        order = [['name', 'ASC']]; // Default sorting by region name
     }
+
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-        const rows = await Category.findAll({ // Fetching recipe IDs based on dynamic conditions
+        const rows = await Category.findAll({ // Fetching categories based on dynamic conditions
             limit,
             offset: (page - 1) * limit,
             order,  // Pass the order here
@@ -45,7 +47,7 @@ export const getAllCategories = async(req: Request, res: Response) => {
             return;
         }
 
-        // Step 4: Return paginated results with detailed recipes
+        // Step 4: Return paginated results
         res.status(200).json({
             totalResults: rows.length,
             results: rows,
