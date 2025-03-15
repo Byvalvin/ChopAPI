@@ -56,20 +56,15 @@ Ingredients Endpoints:
 
 Nations Endpoints:
     GET /chop/api/nations: Description: Fetch all available nations with at least 1 recipe. Query parameters: region, sort, limit, page, search. 
-    GET /chop/api/nations/{nation}/recipes: Description: Fetch all available recipes of a nation. Query parameters: Filter by category, sub_category, time, cost, sort, limit, page, search.
 
 Regions Endpoints:
     GET /chop/api/regions: Description: Fetch all available regions with at least 1 recipe. Query parameters: sort, search. 
     GET /chop/api/regions/{id}: Description: Fetch region by id. No query parameters.
-    GET /chop/api/regions/{id}/recipes: Description: Fetch all available recipes from a specific region. Query parameters: Filter by category, sub_category, time, cost, sort, limit, page, search. 
     GET /chop/api/regions/{id}/nations: Description: Fetch all nations in a specific region. Query parameters: sort, search.
-    GET /chop/api/regions/{region}: Description: Fetch region by name. No query parameters.
-    GET /chop/api/regions/{region}/recipes: Description: Fetch all available recipes from a specific region. Query parameters: Filter by category, sub_category, time, cost, sort, limit, page, search.
     GET /chop/api/regions/{region}/nations: Description: Fetch all nations in a specific region. Query parameters: sort, search.
 
 Categories Endpoints
     GET /chop/api/categories: Description: Fetch all available categories (e.g., main, appetizer, snack, street-food, etc.). Query parameters: sort, search.
-    GET /chop/api/categories/{id}: Description: Fetch category by id (e.g., main, appetizer, snack, street-food, etc.). Query parameters: sort, search.
-
+  
 Subcategories Endpoints
     GET /chop/api/subcategories: Description: Fetch all available sub-categories (e.g., vegan, vegetarian, gluten-free, spicy, etc). Query parameters: sort, search.

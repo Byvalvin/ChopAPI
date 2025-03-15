@@ -1,8 +1,10 @@
 import { NextFunction, Request,Response  } from 'express';
-import { normalizeString } from '../utils';
-import { Image } from '../interface';
-import Recipe from '../models/Recipe';  // Import the Recipe model
 import { Op, Includeable } from 'sequelize';
+
+import { normalizeString, validateQueryParams } from '../utils';
+import { Image } from '../interface';
+
+import Recipe from '../models/Recipe';  // Import the Recipe model
 import Ingredient from '../models/Ingredient';
 import RecipeIngredient from '../models/RecipeIngredient';
 import Category from '../models/Category';
@@ -18,7 +20,6 @@ import {
     getRecipeDetails, generateRecipeFilterConditions,
     handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories,
     validateRecipeData,
-    validateQueryParams
 } from './controllerHelpers/recipeControllerHelpers'
 
 import { invalidateRecipeCache } from '../caching/redisCaching';
@@ -176,7 +177,7 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
 };
 
 // Replace the old recipe at id with a new one at id
-export const replaceRecipeById = async (req: Request, res: Response, next: NextFunction) => {
+export const replaceRecipeById = async (req: Request, res: Response) => {
     const { id } = req.params; // Step 1: get user input
     const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Get user data from the request body
 
@@ -743,7 +744,7 @@ export const addRecipeCategoriesById = async(req:Request, res:Response) => {
 }
 
 // Remove a Category from a Recipe BY Id
-export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Response, next:NextFunction) => {
+export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Response) => {
     const {id, category_id} = req.params; // Step 1: get user input
 
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input

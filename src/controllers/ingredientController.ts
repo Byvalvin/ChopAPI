@@ -1,22 +1,10 @@
-import { Request, Response } from 'express';
-import { Ingredient as IngredientI } from '../interface';  // Assuming the interface exists
-import { generateRecipeFilterConditions, getRecipeDetails, stdInclude, validateQueryParams, validSortFields } from './controllerHelpers/recipeControllerHelpers';
+import { NextFunction, Request, Response } from 'express';
+import { generateRecipeFilterConditions, getRecipeDetails, validSortFields } from './controllerHelpers/recipeControllerHelpers';
 import { generateIngredientFilterConditions } from './controllerHelpers/ingredientControllerHelpers';
 import Ingredient from '../models/Ingredient';
 import Recipe from '../models/Recipe';
 import { Op } from 'sequelize';
-import { normalizeString } from '../utils';
-import RecipeIngredient from '../models/RecipeIngredient';
-
-// Dummy data for ingredients
-let ingredientDB: IngredientI[] = [
-    { id: 1, name: 'Tomato' },
-    { id: 2, name: 'Garlic' },
-    { id: 3, name: 'Onion' },
-    { id: 4, name: 'Olive Oil' },
-    { id: 5, name: 'Basil' },
-    { id: 6, name: 'Salt' },
-];
+import { normalizeString, validateQueryParams } from '../utils';
 
 
 // Controller function for getting all ingredients
@@ -93,7 +81,7 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
         return;
     }
     
-    let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1 } = queryParams;
+    let { sort, limit = 10, page = 1 } = queryParams;
     
     // Validate limit and page to ensure they're reasonable
     limit = Math.max(1, Math.min(Number(limit), 100)); // Max 100 recipes per page
@@ -152,3 +140,75 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
         res.status(500).json({ message: `Error fetching recipes with ingredient ${ingredient_name}`, error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 };
+
+// Get recipes using given ingredient id
+export const getRecipesThatUseIngredientById = async (req:Request, res:Response, next:NextFunction) => {
+    const { ingredient_id } = req.params; // Extract ingredient name from URL parameter
+    const { isValid, queryParams, errors } = validateQueryParams(req); // Validate query parameters
+
+    // Step 2: Validate and parse query params
+    if(isNaN(Number(ingredient_id))){
+        return next();
+    }
+    if (!isValid) {
+        res.status(400).json({ errors: errors });
+        return;
+    }
+    const ingredientId = parseInt(ingredient_id, 10);
+    let { sort, limit = 10, page = 1 } = queryParams;
+    
+    // Validate limit and page to ensure they're reasonable
+    limit = Math.max(1, Math.min(Number(limit), 100)); // Max 100 recipes per page
+    page = Math.max(1, Number(page));
+
+    // Apply sorting
+    let order: any = [];
+    if (sort) {
+        order = [[sort, 'ASC']];
+    } else {
+        order = [['name', 'ASC']]; // Default sorting by recipe name
+    }
+    // Step 3: Fulfill the request and query the database
+    try {
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate filter conditions
+
+        // Fetch recipes using Sequelize's `include` to join with Ingredients
+        const rows = await Recipe.findAll({
+            where: whereConditions, // Filtering recipes by conditions
+            include: [
+                ...includeConditions,  // Include any other conditions you might need
+                {
+                    model: Ingredient,
+                    through: { attributes: ['quantity','unit'] },
+                    where: { id: ingredientId }, // Join with ingredients based on name
+                    required: true, // Ensures we only get recipes that include this ingredient
+                },
+            ],
+            limit,
+            offset: (page - 1) * limit,
+            order: order, // Sorting based on user input
+        });
+
+        if (!rows.length) {
+            res.status(200).json({
+                totalResults: 0,
+                results: []
+            });
+            return;
+        }
+
+        // Step 4: Fetch detailed recipe data
+        const detailedRecipes = await Promise.all(
+            rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
+        );
+
+        res.status(200).json({
+            totalResults: detailedRecipes.length,
+            results: detailedRecipes
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: `Error fetching recipes with ingredient id ${ingredient_id}`, error: `${(error as Error).name}: ${(error as Error).message}` });
+    }
+    
+}
