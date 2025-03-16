@@ -1,7 +1,7 @@
 import { normalizeString } from '../../utils';
 import { RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
 import Recipe from '../../models/Recipe';  // Import the Recipe model
-import { Op, Includeable } from 'sequelize';
+import { Op, Includeable, Sequelize } from 'sequelize';
 import Ingredient from '../../models/Ingredient';
 import RecipeIngredient from '../../models/RecipeIngredient';
 import Category from '../../models/Category';
@@ -320,18 +320,15 @@ export const generateRecipeFilterConditions = (queryParams: any) => {
         whereConditions['cost'] = { [Op.lte]: cost };  // Use Op for comparison
     }
   
-    // If there's a search term, include additional fields (name, description, ingredients)
+    // If there's a search term, include additional fields (name and aliases)
+    // Add search condition for recipe name and aliases
     if (search) {
         whereConditions[Op.or] = [
-            { name: { [Op.iLike]: `%${search}%` } },
-            { description: { [Op.iLike]: `%${search}%` } },
-            { '$Ingredients.name$': { [Op.iLike]: `%${search}%` } }, // Use correct alias for ingredients
+            { name: { [Op.iLike]: `%${search}%` } }, // Search by recipe name
+             // Here, we want to search within aliases using raw SQL
+             Sequelize.literal(`EXISTS (SELECT 1 FROM "recipe_aliases" WHERE "recipe_aliases"."recipeId" = "Recipe"."id" AND "recipe_aliases"."alias" ILIKE '%${search}%')`)
         ];
-        includeConditions.push({
-            model: Ingredient,
-            through: { attributes: [] }, // Exclude join table attributes
-            attributes: ['name'],
-        });
+
     }
 
     return { whereConditions, includeConditions };

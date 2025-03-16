@@ -55,7 +55,7 @@ export const getAllRecipes = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where and include conditions using the helper function
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate the where and include conditions using the helper function
 
         const rows = await Recipe.findAll({ // Fetching recipe IDs based on dynamic conditions
             where: whereConditions, // Apply where conditions
@@ -64,7 +64,7 @@ export const getAllRecipes = async (req: Request, res: Response) => {
             offset: (page - 1) * limit,
             order,  // Pass the order here
         });
-
+        console.log(rows[0]);
         // If no results are found
         if (!rows.length) {
             res.status(200).json({
