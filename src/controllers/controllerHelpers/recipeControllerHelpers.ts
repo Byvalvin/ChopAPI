@@ -326,7 +326,19 @@ export const generateRecipeFilterConditions = (queryParams: any) => {
         whereConditions[Op.or] = [
             { name: { [Op.iLike]: `%${search}%` } }, // Search by recipe name
              // Here, we want to search within aliases using raw SQL
-             Sequelize.literal(`EXISTS (SELECT 1 FROM "recipe_aliases" WHERE "recipe_aliases"."recipeId" = "Recipe"."id" AND "recipe_aliases"."alias" ILIKE '%${search}%')`)
+            Sequelize.literal(`
+                EXISTS (
+                    SELECT 1
+                    FROM "recipe_aliases"
+                    WHERE "recipe_aliases"."recipeId" = "Recipe"."id"
+                    AND "recipe_aliases"."alias" ILIKE '%${search}%'
+                ) OR 
+                "Recipe"."id" IN (
+                    SELECT "recipeId"
+                    FROM "recipe_aliases"
+                    WHERE "recipe_aliases"."alias" ILIKE '%${search}%'
+                )
+            `)
         ];
 
     }

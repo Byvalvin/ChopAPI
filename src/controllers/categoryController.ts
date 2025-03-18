@@ -32,7 +32,13 @@ export const getAllCategories = async(req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
+        let whereConditions: any = {};  // Initialize where conditions
+        // If there's a search query, filter regions by name
+        if (search) {
+            whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match regions by name (case-insensitive)
+        }
         const rows = await Category.findAll({ // Fetching categories based on dynamic conditions
+            where: whereConditions,
             limit,
             offset: (page - 1) * limit,
             order,  // Pass the order here

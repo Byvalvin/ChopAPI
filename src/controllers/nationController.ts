@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import Nation from "../models/Nation";
 import { validateQueryParams } from '../utils';
+import { Op } from 'sequelize';
 
 // Main endpoint to get all recipes
 export const getAllNations = async (req: Request, res: Response) => {
@@ -30,8 +31,13 @@ export const getAllNations = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-
+        let whereConditions: any = {};  // Initialize where conditions
+        // If there's a search query, filter regions by name
+        if (search) {
+            whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match regions by name (case-insensitive)
+        }
         const rows = await Nation.findAll({ // Fetching nations based on dynamic conditions
+            where:whereConditions,
             limit: Number(limit),
             offset: (page - 1) * limit,
             order,  // Pass the order here

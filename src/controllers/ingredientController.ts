@@ -38,7 +38,7 @@ export const getAllIngredients = async(req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-        const { whereConditions, includeConditions } = generateIngredientFilterConditions(req.query); // Generate the where and include conditions using the helper function
+        const { whereConditions, includeConditions } = generateIngredientFilterConditions(queryParams); // Generate the where and include conditions using the helper function
 
         const rows = await Ingredient.findAll({ // Fetching ingredients based on dynamic conditions
             where: whereConditions, // Apply where conditions

@@ -32,7 +32,7 @@ export const getAllRegions = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-        const { whereConditions, includeConditions } = generateRegionFilterConditions(req.query); // Generate the where and include conditions using the helper function
+        const { whereConditions, includeConditions } = generateRegionFilterConditions(queryParams); // Generate the where and include conditions using the helper function
 
         const rows = await Region.findAll({ // Fetching recipe IDs based on dynamic conditions
             where: whereConditions, // Apply where conditions
@@ -134,7 +134,7 @@ export const getRegionByRegionName = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try {
-        const { whereConditions, includeConditions } = generateRegionFilterConditions(req.query); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
+        const { whereConditions, includeConditions } = generateRegionFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
         whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the region name
 
         const region  = await Region.findOne({ // Sequelize query to fetch the filtered and sorted regions with the required associations
@@ -170,7 +170,7 @@ export const getRegionNationsByRegionId = async(req:Request, res:Response, next:
         res.status(400).json({ message: "Invalid ID format" });
         return;
     }
-
+    
     // Step 3: Fulfil Request
     try {
         // Use getRecipeDetails to fetch the region details by ID
@@ -221,7 +221,7 @@ export const getRegionNationsByRegionName = async(req:Request, res:Response)=>{
 
     // Step 3: Fulfil Request
     try {
-        const { whereConditions, includeConditions } = generateRegionFilterConditions(req.query); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
+        const { whereConditions, includeConditions } = generateRegionFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
         whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the region name
 
         const region  = await Region.findOne({ // Sequelize query to fetch the filtered and sorted regions with the required associations

@@ -346,7 +346,7 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try {
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(req.query); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
+        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
         whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the recipe name
 
         const rows  = await Recipe.findAll({ // Sequelize query to fetch the filtered and sorted recipes with the required associations

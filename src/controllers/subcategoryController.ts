@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { validateQueryParams } from "../utils";
 import Subcategory from "../models/Subcategory";
+import { Op } from "sequelize";
 
 
 export const getAllSubcategories = async(req:Request, res:Response) =>{
@@ -24,7 +25,13 @@ export const getAllSubcategories = async(req:Request, res:Response) =>{
 
 
     try{
+        let whereConditions: any = {};  // Initialize where conditions
+        // If there's a search query, filter regions by name
+        if (search) {
+            whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match regions by name (case-insensitive)
+        }
         const rows = await Subcategory.findAll({
+            where:whereConditions,
             limit,
             offset : (page-1)*limit,
             order

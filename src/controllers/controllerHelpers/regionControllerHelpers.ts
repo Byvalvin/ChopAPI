@@ -1,4 +1,4 @@
-import { Includeable, Op } from "sequelize";
+import { Includeable, Op, Sequelize } from "sequelize";
 import Nation from "../../models/Nation";
 import { normalizeString } from "../../utils";
 import Region from "../../models/Region";
@@ -43,12 +43,12 @@ export const getRegionDetails = async (regionId: number) => {
 
     // Prepare the region object in the format you want
     const detailedRegion = {
-    id: region.id,
-    name: region.name,
-    nations: typedRegion.Nations.map((nation) => ({
-        id: nation.id,
-        name: nation.name,
-    })),
+      id: region.id,
+      name: region.name,
+      nations: typedRegion.Nations.map((nation) => ({
+          id: nation.id,
+          name: nation.name,
+      })),
     };
 
     // Cache the region details after fetching from DB
@@ -60,35 +60,23 @@ export const getRegionDetails = async (regionId: number) => {
       throw new Error('Error fetching region details');
     }
 };
-  
+
 export const generateRegionFilterConditions = (queryParams: any) => {
-    const { search, nation } = queryParams;
-  
-    let whereConditions: any = {}; // Initialize the conditions object
-    let includeConditions: Includeable[] = []; // Initialize includes for related models
-  
-    // Add conditions for searching within region names or nation names
-    if (search) {
-      whereConditions[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%` } },  // Match region name
-        { '$Nations.name$': { [Op.iLike]: `%${search}%` } },  // Match nation name within a region
-      ];
-      includeConditions.push({
-        model: Nation,
-        through: { attributes: [] },  // Exclude join table attributes
-        attributes: ['name'],
-      });
-    }
-  
-    // Add condition for filtering by nation ID if provided
-    if (nation) {
-      whereConditions['$Nations.id$'] = { [Op.eq]: nation };  // Match a specific nation ID
-      includeConditions.push({
-        model: Nation,
-        through: { attributes: [] },
-        attributes: ['id', 'name'],
-      });
-    }
-  
-    return { whereConditions, includeConditions };
+  const { search, nation } = queryParams;
+
+  let whereConditions: any = {};  // Initialize where conditions
+  let includeConditions: Includeable[] = [];  // Initialize include conditions for associations
+
+  // If there's a search query, filter regions by name
+  if (search) {
+    whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match regions by name (case-insensitive)
+  }
+
+  // If there's a nation filter
+  if (nation) {
+    const isNationId = !isNaN(Number(nation));  // Check if 'nation' is a number (nation ID)
+  }
+
+
+  return { whereConditions, includeConditions };
 };
