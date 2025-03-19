@@ -1,5 +1,9 @@
 
 import { Request } from 'express';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();  // This will load variables from the .env file
+
 
 // Ensure that str is a valid string before calling trim(), or handle it as needed (throw error, log, etc.)
 export const normalizeString = (str: string) => typeof str === 'string' ? str.trim().toLowerCase() : '';
@@ -88,4 +92,23 @@ export const validateQueryParams = (req: Request) :any => {
       search: search ? normalizeString(search as string) : undefined,
     },
   };
+};
+
+
+// Generate a new JWT token
+const secret = process.env.JWT_SECRET;
+const expiresIn = "1h";
+export const generateToken = (userId: string): string => {
+    return jwt.sign({ userId }, secret as string, {
+        expiresIn: expiresIn, // e.g., 1h
+    });
+};
+
+// Verify the JWT token
+export const verifyToken = (token: string): any => {
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET as string);
+    } catch (err) {
+        throw new Error('Invalid or expired token');
+    }
 };

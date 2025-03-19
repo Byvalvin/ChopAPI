@@ -6,6 +6,7 @@ import {
     getRecipeNamesById, getRecipeIngredientsById, getRecipeInstructionsById, getRecipeCategoriesById, getRecipeSubcategoriesById, getRecipeImagesById,
     replaceRecipeById, replaceAliasForRecipeById, replaceRecipeIngredientsById, replaceRecipeInstructionsById,
     removeRecipeIngredientByIdandIngredientId, removeRecipeCategoryByIdandCategoryId, removeRecipeSubcategoriesByIdandSubcategoryId, removeRecipeImageByIdandImageId,
+    deleteRecipeById,
     
 } from '../controllers/recipeController';
 /*
@@ -22,6 +23,9 @@ const router = Router();
 
 //ROUTES
 
+// Protected route: delete recipe (only accessible to authenticated users)
+import { authMiddleware } from '../middleware/authentication';
+router.delete('/:id', authMiddleware, deleteRecipeById);
 /**
  * @swagger
  * /chop/api/recipes:

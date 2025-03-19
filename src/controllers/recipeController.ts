@@ -26,6 +26,29 @@ import RecipeCache from '../caching/RecipeCaching';
 import RegionCache from '../caching/RegionCaching';
 
 
+export const deleteRecipeById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const recipeId = parseInt(id, 10);  // Step 2: validate and parse user input, return if bad input. Convert ID to an integer
+    if (isNaN(recipeId)) {  
+        res.status(400).json({ message: "Invalid ID format" });
+        return;
+    }
+    
+    try {
+        const recipe = await Recipe.findOne({ where: { id:recipeId } });
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found' });
+            return;
+        }
+        await recipe.destroy();
+        res.status(200).json({ message: 'Recipe deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 // Main endpoint to get all recipes
 export const getAllRecipes = async (req: Request, res: Response) => {
     // Step 1: get user input
