@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import Nation from "../models/Nation";
 import { validateQueryParams } from '../utils';
 import { Op } from 'sequelize';
+import NationCache from '../caching/NationCaching';
 
 // Main endpoint to get all recipes
 export const getAllNations = async (req: Request, res: Response) => {
@@ -50,6 +51,9 @@ export const getAllNations = async (req: Request, res: Response) => {
                 results: [],
             });
             return;
+        }
+        for(const row of rows){ //setCache
+            await NationCache.setCache(row.id, row);
         }
 
         // Step 4: Return paginated results

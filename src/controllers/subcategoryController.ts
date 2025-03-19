@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { validateQueryParams } from "../utils";
 import Subcategory from "../models/Subcategory";
 import { Op } from "sequelize";
+import SubcategoryCache from "../caching/SubcategoryCaching";
 
 
 export const getAllSubcategories = async(req:Request, res:Response) =>{
@@ -44,6 +45,10 @@ export const getAllSubcategories = async(req:Request, res:Response) =>{
             });
             return;
         }
+        for(const row of rows){ //setCache
+            await SubcategoryCache.setCache(row.id, row);
+        }
+
         res.status(200).json({
             totalResults : rows.length,
             results : rows

@@ -23,6 +23,7 @@ import {
 } from './controllerHelpers/recipeControllerHelpers'
 
 import RecipeCache from '../caching/RecipeCaching';
+import RegionCache from '../caching/RegionCaching';
 
 
 // Main endpoint to get all recipes
@@ -133,6 +134,7 @@ export const addRecipe = async (req: Request, res: Response) => {
 
         // Invalidate the old cache
         await RecipeCache.invalidateCache(newRecipe.id);
+        await RegionCache.invalidateCache(regionId);
 
         // Return response with the new recipe's ID
         res.status(201).json({ message: `Recipe added with ID: ${newRecipe.id}` });
@@ -246,6 +248,9 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
 
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
+        await RegionCache.invalidateCache(regionId);
+
+        
 
         // Return the updated recipe data
         res.status(200).json(await getRecipeDetails(recipeId));
@@ -307,6 +312,7 @@ export const updateRecipeById = async (req: Request, res: Response) => {
         });
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
+        await RegionCache.invalidateCache(regionId);
         
         // Step 4: Return the updated recipe details
         const updatedRecipe = await getRecipeDetails(recipeId);
@@ -456,8 +462,8 @@ export const addAliasToRecipeById = async (req: Request, res: Response) => {
     // Ensure recipeId is an integer
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
-      res.status(400).json({ message: 'Invalid recipe ID' });
-      return;
+        res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
     }
     const validationResult = validateRecipeData(req.body);
     if (validationResult) {
@@ -624,7 +630,7 @@ export const getRecipeInstructionsById = async (req:Request, res:Response) => {
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
-      }
+    }
     try {
         const include : Includeable[] = [
             { model: RecipeInstruction, attributes: ['step', 'instruction'] }
@@ -841,11 +847,11 @@ export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
         await handleSubcategories(recipeId, subcategories); // update RecipeSubcategory (and Subcategory if new addition) DBs by adding new Subcategory Objects
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);  
-      // Step 4: Return the updated recipe, include success (OR FAILURE) message
-      res.status(201).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        res.status(201).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding subcategory to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        console.error(error);
+        res.status(500).json({ message: 'Error adding subcategory to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
@@ -963,14 +969,13 @@ export const addRecipeImageById = async(req:Request, res:Response) => {
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
   
-      // Step 4: Return the updated recipe, include success (OR FAILURE) message
-      res.status(200).json(await getRecipeDetails(recipeId));
+        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Error adding image to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 }
-
 
 
 // Remove Image of Recipe

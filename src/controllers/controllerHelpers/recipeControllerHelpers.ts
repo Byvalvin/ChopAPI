@@ -406,7 +406,6 @@ export const getRecipeDetails = async (recipeId: number, customInclude: Includea
         // Cache the recipe details after fetching from DB, update cache since there was no prev cachedData
         await RecipeCache.setCache(recipeId, detailedRecipe as RecipeI); 
 
-
         // Return the recipe in the required format, with optional chaining to avoid null errors
         return detailedRecipe;
     } catch (error) {

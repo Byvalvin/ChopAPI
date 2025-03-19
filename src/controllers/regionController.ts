@@ -29,7 +29,6 @@ export const getAllRegions = async (req: Request, res: Response) => {
         order = [['name', 'ASC']]; // Default sorting by region name
     }
 
-
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
         const { whereConditions, includeConditions } = generateRegionFilterConditions(queryParams); // Generate the where and include conditions using the helper function
@@ -148,6 +147,7 @@ export const getRegionByRegionName = async (req: Request, res: Response) => {
             res.status(404).json({ message: `Region with name: ${region_name} not found` });
             return;
         }
+        
 
         // Step 4: Return the result
         res.status(200).json(await getRegionDetails(region.id));

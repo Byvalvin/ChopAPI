@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 import { normalizeString, validateQueryParams } from '../utils';
 import Category from '../models/Category';
+import CategoryCache from '../caching/CategoryCaching';
 
 
 // Controller function for getting all ingredients
@@ -51,6 +52,9 @@ export const getAllCategories = async(req: Request, res: Response) => {
                 results: [],
             });
             return;
+        }
+        for(const row of rows){ // setCache
+            await CategoryCache.setCache(row.id, row);
         }
 
         // Step 4: Return paginated results

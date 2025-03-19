@@ -5,6 +5,7 @@ import Ingredient from '../models/Ingredient';
 import Recipe from '../models/Recipe';
 import { Op } from 'sequelize';
 import { normalizeString, validateQueryParams } from '../utils';
+import IngredientCache from '../caching/IngredientCaching';
 
 
 // Controller function for getting all ingredients
@@ -55,6 +56,9 @@ export const getAllIngredients = async(req: Request, res: Response) => {
                 results: [],
             });
             return;
+        }
+        for(const row of rows){ // setCache
+            await IngredientCache.setCache(row.id, row);
         }
 
         // Step 4: Return paginated results
