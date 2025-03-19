@@ -64,6 +64,6 @@ import nationRoutes from './routes/nation';
 app.use(`${baseURL}/nations`, nationRoutes); // NATIONS
 
 import authRoutes from './routes/App/auth'; 
-app.use(`${baseURL}/auth`, authRoutes); // NATIONS
+app.use(`${baseURL}/auth`, authRoutes); // AUTH
 
 export default app;

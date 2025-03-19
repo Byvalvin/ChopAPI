@@ -24,7 +24,7 @@ import {
 
 import RecipeCache from '../caching/RecipeCaching';
 import RegionCache from '../caching/RegionCaching';
-
+import sequelize from '../DB/connection';
 
 export const deleteRecipeById = async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -34,16 +34,33 @@ export const deleteRecipeById = async (req: Request, res: Response) => {
         res.status(400).json({ message: "Invalid ID format" });
         return;
     }
-    
+
+    const t = await sequelize.transaction();  // Start a new transaction
+
     try {
-        const recipe = await Recipe.findOne({ where: { id:recipeId } });
+        const recipe = await Recipe.findOne({ where: { id: recipeId }, transaction: t });
+
         if (!recipe) {
             res.status(404).json({ message: 'Recipe not found' });
             return;
         }
-        await recipe.destroy();
+
+        // Delete related entries first if cascading doesn't work automatically
+        await RecipeAlias.destroy({ where: { recipeId }, transaction: t });
+        await RecipeInstruction.destroy({ where: { recipeId }, transaction: t });
+        await RecipeImage.destroy({ where: { recipeId }, transaction: t });
+        await RecipeCategory.destroy({ where: { recipeId }, transaction: t });
+        await RecipeSubcategory.destroy({ where: { recipeId }, transaction: t });
+        await RecipeIngredient.destroy({ where: { recipeId }, transaction: t });
+
+        // Now delete the recipe
+        await recipe.destroy({ transaction: t });
+
+        await t.commit();  // Commit the transaction
+
         res.status(200).json({ message: 'Recipe deleted successfully' });
     } catch (error) {
+        await t.rollback();  // Rollback the transaction in case of error
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }

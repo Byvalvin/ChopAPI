@@ -24,7 +24,6 @@ export default function setupAssociations() {
         foreignKey: 'recipeId',
         otherKey: 'ingredientId',
     });
-
     // Ingredient
     Ingredient.belongsToMany(Recipe, {
         through: 'recipe_ingredients',
