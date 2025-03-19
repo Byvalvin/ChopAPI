@@ -1,5 +1,5 @@
 import { normalizeString } from '../../utils';
-import { RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
+import { Recipe as RecipeI, RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
 import Recipe from '../../models/Recipe';  // Import the Recipe model
 import { Op, Includeable, Sequelize } from 'sequelize';
 import Ingredient from '../../models/Ingredient';
@@ -15,7 +15,7 @@ import RecipeInstruction from '../../models/RecipeInstruction';
 import RecipeAlias from '../../models/RecipeAlias';
 import RecipeImage from '../../models/RecipeImage';
 
-import {getRecipeCache, setRecipeCache} from '../../caching/redisCaching'
+import RecipeCache from '../../caching/RecipeCaching'
 
 // Valid columns for sorting
 export const validSortFields = ['name', 'time', 'cost'];
@@ -347,11 +347,10 @@ export const generateRecipeFilterConditions = (queryParams: any) => {
 };
 
 
-
 // Refactor the getRecipeDetails function to support dynamic includes and safe access, default include everything(stdInclude)
 export const getRecipeDetails = async (recipeId: number, customInclude: Includeable[] = stdInclude) => {
     try {
-        const cachedData = await getRecipeCache(recipeId); // Check if recipe is cached
+        const cachedData = await RecipeCache.getCache(recipeId); // Check if recipe is cached
         if (cachedData) { // Return cached data
             return cachedData; 
         }
@@ -405,7 +404,7 @@ export const getRecipeDetails = async (recipeId: number, customInclude: Includea
             })) || [], // Safely map ingredients
         };
         // Cache the recipe details after fetching from DB, update cache since there was no prev cachedData
-        await setRecipeCache(recipeId, detailedRecipe); 
+        await RecipeCache.setCache(recipeId, detailedRecipe as RecipeI); 
 
 
         // Return the recipe in the required format, with optional chaining to avoid null errors

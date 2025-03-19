@@ -22,7 +22,7 @@ import {
     validateRecipeData,
 } from './controllerHelpers/recipeControllerHelpers'
 
-import { invalidateRecipeCache } from '../caching/redisCaching';
+import RecipeCache from '../caching/RecipeCaching';
 
 
 // Main endpoint to get all recipes
@@ -64,7 +64,6 @@ export const getAllRecipes = async (req: Request, res: Response) => {
             offset: (page - 1) * limit,
             order,  // Pass the order here
         });
-        console.log(rows[0]);
         // If no results are found
         if (!rows.length) {
             res.status(200).json({
@@ -133,7 +132,7 @@ export const addRecipe = async (req: Request, res: Response) => {
         await handleRecipeImages(newRecipe.id, images);
 
         // Invalidate the old cache
-        await invalidateRecipeCache(newRecipe.id);
+        await RecipeCache.invalidateCache(newRecipe.id);
 
         // Return response with the new recipe's ID
         res.status(201).json({ message: `Recipe added with ID: ${newRecipe.id}` });
@@ -246,7 +245,7 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
         });
 
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
 
         // Return the updated recipe data
         res.status(200).json(await getRecipeDetails(recipeId));
@@ -307,7 +306,7 @@ export const updateRecipeById = async (req: Request, res: Response) => {
             nationId,  // Update nationId after resolving nation
         });
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         
         // Step 4: Return the updated recipe details
         const updatedRecipe = await getRecipeDetails(recipeId);
@@ -439,7 +438,7 @@ export const replaceAliasForRecipeById = async (req: Request, res: Response) => 
         });
         await handleRecipeAliases(recipeId, aliases);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
     
         // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
@@ -470,7 +469,7 @@ export const addAliasToRecipeById = async (req: Request, res: Response) => {
     try {
         await handleRecipeAliases(recipeId, aliases);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the updated recipe along with the new aliases
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -536,7 +535,7 @@ export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
         });
         await handleIngredients(recipeId, ingredients);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);  
+        await RecipeCache.invalidateCache(recipeId);  
         // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -565,7 +564,7 @@ export const addRecipeIngredientsById = async(req:Request, res:Response) => {
     try {
         await handleIngredients(recipeId, ingredients);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId); 
+        await RecipeCache.invalidateCache(recipeId); 
         // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -607,7 +606,7 @@ export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:
           where: { recipeId, ingredientId }, // Clear the current ingredients for this recipe (delete all existing ingredients for this recipe)
         });
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
 
         // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
         res.status(204).json({message:`Deleted Ingredient with id ${ingredientId} from recipe with id ${recipeId}`});
@@ -670,7 +669,7 @@ export const replaceRecipeInstructionsById = async(req:Request, res:Response) =>
         });
         await handleRecipeInstructions(recipeId, instructions);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the updated recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -734,7 +733,7 @@ export const addRecipeCategoriesById = async(req:Request, res:Response) => {
     try {
         await handleCategories(recipeId, categories);
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the new recipe, include success (OR FAILURE) message
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -775,7 +774,7 @@ export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Resp
             where: { recipeId, categoryId }, // Delete only the recipecategory with id categoryId for this recipe(recipeId)
         });
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
         res.status(204).json({message:`Deleted Category with id ${categoryId} from recipe with id ${recipeId}`});
     } catch (error) {
@@ -841,7 +840,7 @@ export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
     try {
         await handleSubcategories(recipeId, subcategories); // update RecipeSubcategory (and Subcategory if new addition) DBs by adding new Subcategory Objects
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);  
+        await RecipeCache.invalidateCache(recipeId);  
       // Step 4: Return the updated recipe, include success (OR FAILURE) message
       res.status(201).json(await getRecipeDetails(recipeId));
     } catch (error) {
@@ -882,7 +881,7 @@ export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, 
             where: { recipeId, subcategoryId }, // Delete only the recipesubcategory with id subcategoryId for this recipe(recipeId)
         });
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
         res.status(204).json({message:`Deleted Subcategory with id ${subcategoryId} from recipe with id ${recipeId}`});
     } catch (error) {
@@ -962,7 +961,7 @@ export const addRecipeImageById = async(req:Request, res:Response) => {
     try {
         await handleRecipeImages(recipeId, images); // update RecipeImage DB by adding new RecipeImage Objects
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
   
       // Step 4: Return the updated recipe, include success (OR FAILURE) message
       res.status(200).json(await getRecipeDetails(recipeId));
@@ -1006,7 +1005,7 @@ export const removeRecipeImageByIdandImageId = async(req:Request, res:Response) 
             where: { recipeId, id:imageId }, 
         });
         // Invalidate the old cache
-        await invalidateRecipeCache(recipeId);
+        await RecipeCache.invalidateCache(recipeId);
         // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
         res.status(204).json({message:`Deleted Image with id ${imageId} from recipe with id ${recipeId}`});
     } catch (error) {
