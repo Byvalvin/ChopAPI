@@ -13,7 +13,7 @@
     ],
     "routes": [
       {
-        "src": "/chop/api/docs",
+        "src": "/(.*)",
         "dest": "/src/server.ts"
       }
     ]
