@@ -1,4 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // Determine the base URL depending on the environment
 const serverUrl = process.env.IS_DEV === 'False'
