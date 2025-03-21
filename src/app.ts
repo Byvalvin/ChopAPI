@@ -5,9 +5,6 @@ import setupAssociations from './DB/associations';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './openapiDoc';
-import path from 'path';
-const { SwaggerUIBundle, SwaggerUIStandalonePreset } = require('swagger-ui-dist');
-
 
 const app = express();
 const baseURL = '/chop/api';
@@ -16,15 +13,10 @@ const openapiDocURL = `${baseURL}/docs`;
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
-// Serve Swagger UI assets directly from the 'swagger-ui-dist' folder
-app.use('/swagger-ui', express.static(path.join(__dirname, 'node_modules', 'swagger-ui-dist')));
+app.use(openapiDocURL, swaggerUi.serveFiles(swaggerSpec), swaggerUi.setup(swaggerSpec));
+//app.use('/api-docs', swaggerUi.serveFiles(swaggerDoc, options), swaggerUi.setup(swaggerDoc, options));
 
-// Serve Swagger UI at the /docs route
-app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  swaggerOptions: {
-    url: `${baseURL}/swagger.json`,  // Point to the generated swagger JSON spec
-  },
-}));
+
 app.use(logger); // Use the custom logging middleware
 
 

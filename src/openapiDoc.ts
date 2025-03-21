@@ -9,6 +9,7 @@ const serverUrl = process.env.IS_DEV === 'False'
   ? 'https://chop-api-nine.vercel.app'  // Your Vercel deployment URL
   : 'http://localhost:3000';  // Local development URL
 
+  const CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css';
 // Define swagger options
 const swaggerOptions = {
     definition: {
@@ -35,7 +36,10 @@ const swaggerOptions = {
     },
 
     apis: ['src/routes/*.ts'],  // Path to your route files
+    customCssUrl: CSS_URL,
 };
+
+
 
 // Create the OpenAPI specification
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
