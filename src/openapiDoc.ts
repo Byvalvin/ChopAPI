@@ -31,6 +31,7 @@ const swaggerOptions = {
     apis: ['src/routes/*.ts',],
 };
 
+
 // Create the OpenAPI specification
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
