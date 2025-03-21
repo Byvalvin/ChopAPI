@@ -1,12 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 const { SwaggerUIBundle, SwaggerUIStandalonePreset } = require('swagger-ui-dist');
 
-const CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css';
-
-const options = {
-
-};
-
 
 
 // Define swagger options
@@ -35,9 +29,6 @@ const swaggerOptions = {
     },
 
     apis: ['src/routes/*.ts',],
-    
-    customCssUrl: CSS_URL,
-
 };
 
 // Create the OpenAPI specification
