@@ -26,6 +26,7 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.6",
     "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-dist": "^5.20.1",
     "swagger-ui-express": "^5.0.1",
     "vercel": "^41.4.1"
   },
