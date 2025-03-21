@@ -16,6 +16,7 @@ const sequelize = new Sequelize(DATABASE_URL, {
       rejectUnauthorized: false,  // For remote connections like Supabase
     },
   },
+  dialectModule: pg, // add this !
 });
 
 // Test connection
