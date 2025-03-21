@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import dotenv from 'dotenv';
+const { SwaggerUIBundle, SwaggerUIStandalonePreset } = require('swagger-ui-dist');
 
 // Load environment variables from .env file
 dotenv.config();
