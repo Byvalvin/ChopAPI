@@ -25,6 +25,7 @@ import {
 import RecipeCache from '../caching/RecipeCaching';
 import RegionCache from '../caching/RegionCaching';
 import sequelize from '../DB/connection';
+import { regions } from '../data';
 
 export const deleteRecipeById = async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -36,10 +37,8 @@ export const deleteRecipeById = async (req: Request, res: Response) => {
     }
 
     const t = await sequelize.transaction();  // Start a new transaction
-
     try {
         const recipe = await Recipe.findOne({ where: { id: recipeId }, transaction: t });
-
         if (!recipe) {
             res.status(404).json({ message: 'Recipe not found' });
             return;
@@ -57,7 +56,7 @@ export const deleteRecipeById = async (req: Request, res: Response) => {
         await recipe.destroy({ transaction: t });
 
         await t.commit();  // Commit the transaction
-
+        await RecipeCache.invalidateCache(recipeId);
         res.status(200).json({ message: 'Recipe deleted successfully' });
     } catch (error) {
         await t.rollback();  // Rollback the transaction in case of error
