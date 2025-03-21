@@ -6,6 +6,8 @@ import setupAssociations from './DB/associations';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './openapiDoc';
 import path from 'path';
+const { SwaggerUIBundle, SwaggerUIStandalonePreset } = require('swagger-ui-dist');
+
 
 const app = express();
 const baseURL = '/chop/api';
