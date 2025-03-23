@@ -7,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './openapiDoc';
 
 import path from 'path';
-import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist';
+//import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist';
 
 const app = express();
 const baseURL = '/chop/api';
