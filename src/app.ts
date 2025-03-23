@@ -13,19 +13,30 @@ const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
 
-// Add your middleware here
-// MIDDLEWARE
-app.use(express.json()); // Middleware to parse JSON bodies
-//app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-//app.use('/api-docs', swaggerUi.serveFiles(swaggerDoc, options), swaggerUi.setup(swaggerDoc, options));
-
-
-app.use(logger); // Use the custom logging middleware
-
 // swagger
 import swaggerUI from 'swagger-ui-express';
 // import swaggerDocument from './swagger.json';
 const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
+
+
+// Add your middleware here
+// MIDDLEWARE
+app.use(express.json()); // Middleware to parse JSON bodies
+//app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+  openapiDocURL,
+  swaggerUI.serve,
+  swaggerUI.setup(null, {
+    swaggerUrl: '/swagger.json', // Reference the static file
+    customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+    customCssUrl: swaggerUICss,
+  })
+);
+// Serve the static Swagger JSON file
+app.use('/swagger.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'swagger.json'));
+});
+app.use(logger); // Use the custom logging middleware
 
 // app.use(openapiDocURL,
 //   swaggerUI.serve,
@@ -37,20 +48,7 @@ const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/sw
 //     }
 //   )
 // );// end of swagger
-app.use(
-  openapiDocURL,
-  swaggerUI.serve,
-  swaggerUI.setup(null, {
-    swaggerUrl: '/swagger.json', // Reference the static file
-    customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-    customCssUrl: swaggerUICss,
-  })
-);
 
-// Serve the static Swagger JSON file
-app.use('/swagger.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'swagger.json'));
-});
 
 
 // Check if sequelize is already initialized
