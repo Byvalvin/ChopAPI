@@ -6,6 +6,8 @@ import setupAssociations from './DB/associations';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './openapiDoc';
 
+import path from 'path';
+
 const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
@@ -13,16 +15,34 @@ const openapiDocURL = `${baseURL}/docs`;
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
-app.use(openapiDocURL, swaggerUi.serveFiles(swaggerSpec), swaggerUi.setup(swaggerSpec));
+app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 //app.use('/api-docs', swaggerUi.serveFiles(swaggerDoc, options), swaggerUi.setup(swaggerDoc, options));
 
 
 app.use(logger); // Use the custom logging middleware
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve Swagger UI files
+app.use('/swagger-ui', express.static(path.join(__dirname, '../public/swagger-ui')));
 
 // Serve the OpenAPI spec as JSON at the /swagger.json route
-app.get(`${baseURL}/swagger.json`, (req, res) => {
-  res.json(swaggerSpec);  // Serve the generated Swagger spec
+// app.get(`${baseURL}/swagger.json`, (req, res) => {
+//   res.json(swaggerSpec);  // Serve the generated Swagger spec
+// });
+// Serve swagger.json
+// app.get('/api-docs/swagger.json', (_, res) => {
+//   res.setHeader('Content-Type', 'application/json');
+//   res.send(swaggerSpec);
+// });
+app.get(`${openapiDocURL}/swagger.json`, (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+// Redirect /api-docs to the Swagger UI
+app.get(openapiDocURL, (_, res) => {
+  res.redirect('/swagger-ui/');
 });
 
 
@@ -74,6 +94,7 @@ import nationRoutes from './routes/nation';
 app.use(`${baseURL}/nations`, nationRoutes); // NATIONS
 
 import authRoutes from './routes/App/auth'; 
+
 app.use(`${baseURL}/auth`, authRoutes); // AUTH
 
 export default app;
