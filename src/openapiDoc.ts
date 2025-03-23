@@ -40,7 +40,9 @@ const swaggerOptions = {
         ],  
     },
 
-    apis: ['src/routes/*.ts'],  // Path to your route files
+    //apis: ['src/routes/*.ts'],  // Path to your route files
+    apis: ['dist/src/routes/*.js'],  // Point to the transpiled routes in production
+
 };
 
 
