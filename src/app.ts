@@ -22,29 +22,6 @@ app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(logger); // Use the custom logging middleware
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve Swagger UI files
-app.use('/swagger-ui', express.static(path.join(__dirname, 'node_modules/swagger-ui-dist')));
-
-// Serve the OpenAPI spec as JSON at the /swagger.json route
-// app.get(`${baseURL}/swagger.json`, (req, res) => {
-//   res.json(swaggerSpec);  // Serve the generated Swagger spec
-// });
-// Serve swagger.json
-// app.get('/api-docs/swagger.json', (_, res) => {
-//   res.setHeader('Content-Type', 'application/json');
-//   res.send(swaggerSpec);
-// });
-app.get(`${openapiDocURL}/swagger.json`, (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
-// Redirect /api-docs to the Swagger UI
-app.get(openapiDocURL, (_, res) => {
-  res.redirect('/swagger-ui/');
-});
 
 
 // Check if sequelize is already initialized
@@ -95,7 +72,6 @@ import nationRoutes from './routes/nation';
 app.use(`${baseURL}/nations`, nationRoutes); // NATIONS
 
 import authRoutes from './routes/App/auth'; 
-
 app.use(`${baseURL}/auth`, authRoutes); // AUTH
 
 export default app;
