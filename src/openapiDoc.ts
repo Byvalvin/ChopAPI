@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -49,6 +50,13 @@ const swaggerOptions = {
 
 // Create the OpenAPI specification
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+//console.log(JSON.stringify(swaggerSpec, null, 2));
+
+// // Write the generated Swagger JSON to a file
+// fs.writeFileSync('swagger.json', JSON.stringify(swaggerSpec, null, 2), 'utf-8');
+// console.log('Swagger documentation has been saved to swagger.json');
+
+
 
 // Log the OpenAPI spec to the console
 if (swaggerSpec) {
