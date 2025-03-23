@@ -43,6 +43,7 @@ const swaggerOptions = {
 
     apis: ['src/routes/*.ts'],  // Path to your route files
     customCssUrl: swaggerUICss,
+    swaggerUrl: `${serverUrl}/swagger.json`,  // Correct URL to the generated Swagger spec
 };
 
 
