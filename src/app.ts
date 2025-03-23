@@ -25,7 +25,7 @@ app.use(logger); // Use the custom logging middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve Swagger UI files
-app.use('/swagger-ui', express.static(path.join(__dirname, '../public/swagger-ui')));
+app.use('/swagger-ui', express.static(path.join(__dirname, 'node_modules/swagger-ui-dist')));
 
 // Serve the OpenAPI spec as JSON at the /swagger.json route
 // app.get(`${baseURL}/swagger.json`, (req, res) => {
