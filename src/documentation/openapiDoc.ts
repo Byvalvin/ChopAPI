@@ -10,10 +10,10 @@ const serverUrl = process.env.IS_DEV === 'False'
   ? 'https://chop-api-nine.vercel.app'  // Your Vercel deployment URL
   : 'http://localhost:3000';  // Local development URL
 
-const CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css';
-const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
-
-
+const swaggerUICss = [
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css',
+ ]
 
 // end of swagger
 // Define swagger options
@@ -55,8 +55,6 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 // // Write the generated Swagger JSON to a file
 // fs.writeFileSync('swagger.json', JSON.stringify(swaggerSpec, null, 2), 'utf-8');
 // console.log('Swagger documentation has been saved to swagger.json');
-
-
 
 // Log the OpenAPI spec to the console
 if (swaggerSpec) {

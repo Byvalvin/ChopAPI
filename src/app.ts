@@ -3,52 +3,33 @@ import logger from './middleware/logger'; // Import the custom logger
 import sequelize from './DB/connection'; // Import the authenticated Sequelize instance
 import setupAssociations from './DB/associations';
 
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './openapiDoc';
+import swaggerUI from 'swagger-ui-express';
+import swaggerSpec from './documentation/openapiDoc';
 
 import path from 'path';
-//import { SwaggerUIBundle, SwaggerUIStandalonePreset } from 'swagger-ui-dist';
 
 const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
 
 // swagger
-import swaggerUI from 'swagger-ui-express';
-// import swaggerDocument from './swagger.json';
-const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
 
 
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
-//app.use(openapiDocURL, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(
   openapiDocURL,
   swaggerUI.serve,
   swaggerUI.setup(null, {
     swaggerUrl: '/swagger.json', // Reference the static file
     customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-    customCssUrl: swaggerUICss,
+    customCssUrl: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css", //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
   })
 );
 // Serve the static Swagger JSON file
-app.use('/swagger.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'swagger.json'));
-});
+app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, 'documentation/swagger.json')));
 app.use(logger); // Use the custom logging middleware
-
-// app.use(openapiDocURL,
-//   swaggerUI.serve,
-//   swaggerUI.setup(
-//     swaggerSpec,
-//     {
-//       customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-//       customCssUrl: swaggerUICss
-//     }
-//   )
-// );// end of swagger
-
 
 
 // Check if sequelize is already initialized
