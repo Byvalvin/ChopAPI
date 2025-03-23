@@ -24,15 +24,19 @@ app.use(logger); // Use the custom logging middleware
 
 // swagger
 import swaggerUI from 'swagger-ui-express';
-//import swaggerDocument from './swagger.json';
+// import swaggerDocument from './swagger.json';
 const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
 
 app.use(openapiDocURL,
-    swaggerUI.serve,
-    swaggerUI.setup(swaggerSpec, {
-        customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-        customCssUrl: swaggerUICss
-}))// end of swagger
+  swaggerUI.serve,
+  swaggerUI.setup(
+    swaggerSpec,
+    {
+      customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+      customCssUrl: swaggerUICss
+    }
+  )
+);// end of swagger
 
 
 // Check if sequelize is already initialized
