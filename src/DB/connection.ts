@@ -11,7 +11,7 @@ const DATABASE_URL = {
   "Transaction_Pooler":`postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT2}/${process.env.DB_NAME}`,
   "Session_Pooler":`postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT1}/${process.env.DB_NAME}`
 };
-const urlToUse = "Transaction_Pooler"
+const urlToUse = "Session_Pooler"
 const sequelize = new Sequelize(DATABASE_URL[urlToUse], {
   dialect: 'postgres',
   logging: false,  // Optional: Disable SQL query logging
