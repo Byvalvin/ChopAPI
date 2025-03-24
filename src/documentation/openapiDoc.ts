@@ -10,7 +10,7 @@ const serverUrl = process.env.IS_DEV === 'False'
   ? 'https://chop-api-nine.vercel.app'  // Your Vercel deployment URL
   : 'http://localhost:3000';  // Local development URL
 
-const swaggerUICss = [
+export const swaggerUICss = [
     'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css',
  ]

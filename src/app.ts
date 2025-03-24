@@ -4,7 +4,7 @@ import sequelize from './DB/connection'; // Import the authenticated Sequelize i
 import setupAssociations from './DB/associations';
 
 import swaggerUI from 'swagger-ui-express';
-import swaggerSpec from './documentation/openapiDoc';
+import swaggerSpec, { swaggerUICss } from './documentation/openapiDoc';
 
 import path from 'path';
 
@@ -12,24 +12,21 @@ const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
 
-// swagger
-
 
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
-app.use(
+app.use( //Middleware for swagger
   openapiDocURL,
   swaggerUI.serve,
   swaggerUI.setup(null, {
     swaggerUrl: '/swagger.json', // Reference the static file
     customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-    customCssUrl: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css", //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
+    customCssUrl: swaggerUICss[1], //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
   })
 );
-// Serve the static Swagger JSON file
-app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, 'documentation/swagger.json')));
-app.use(logger); // Use the custom logging middleware
+app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, 'documentation/swagger.json'))); // Serve the static Swagger JSON file
+app.use(logger); // Middleware for logging; Use the custom logging middleware
 
 
 // Check if sequelize is already initialized
