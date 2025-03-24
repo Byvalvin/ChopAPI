@@ -11,22 +11,7 @@ import path from 'path';
 const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
-
-
-// Add your middleware here
-// MIDDLEWARE
-app.use(express.json()); // Middleware to parse JSON bodies
-app.use( //Middleware for swagger
-  openapiDocURL,
-  swaggerUI.serve,
-  swaggerUI.setup(null, {
-    swaggerUrl: '/swagger.json', // Reference the static file
-    customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
-    customCssUrl: swaggerUICss[1], //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
-  })
-);
-app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, 'documentation/swagger.json'))); // Serve the static Swagger JSON file
-app.use(logger); // Middleware for logging; Use the custom logging middleware
+const swaggerToUse = process.env.IS_DEV==="True" ? 'swaggerLocal.json':'swagger.json'
 
 
 // Check if sequelize is already initialized
@@ -50,6 +35,24 @@ if (sequelize) {
 } else {
   console.error('Sequelize instance is not initialized(app).');
 }
+
+
+// Add your middleware here
+// MIDDLEWARE
+app.use(express.json()); // Middleware to parse JSON bodies
+app.use( //Middleware for swagger
+  openapiDocURL,
+  swaggerUI.serve,
+  swaggerUI.setup(null, {
+    swaggerUrl: '/swagger.json', // Reference the static file
+    customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+    customCssUrl: swaggerUICss[1], //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
+  })
+);
+app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, `documentation/${swaggerToUse}`))); // Serve the static Swagger JSON file
+app.use(logger); // Middleware for logging; Use the custom logging middleware
+
+
 
 // Add your routes here
 // Define your routes here (e.g., for Recipes, Ingredients, etc.)
