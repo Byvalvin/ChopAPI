@@ -24,7 +24,7 @@ if (sequelize) {
    * Use { alter: true } or migrations in production to avoid losing data and to allow for schema updates without dropping tables.
    */
   setupAssociations();
-  sequelize.sync({ force: true }) 
+  sequelize.sync({ alter: true }) 
     .then(() => {
       console.log("Database synced!");
       //setupAssociations();
@@ -51,7 +51,6 @@ app.use( //Middleware for swagger
 );
 app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, `documentation/${swaggerToUse}`))); // Serve the static Swagger JSON file
 app.use(logger); // Middleware for logging; Use the custom logging middleware
-
 
 
 // Add your routes here

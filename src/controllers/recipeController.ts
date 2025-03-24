@@ -1,5 +1,5 @@
 import { NextFunction, Request,Response  } from 'express';
-import { Op, Includeable } from 'sequelize';
+import { Op, Includeable, Transaction } from 'sequelize';
 
 import { normalizeString, validateQueryParams } from '../utils';
 import { Image } from '../interface';
@@ -150,36 +150,47 @@ export const addRecipe = async (req: Request, res: Response) => {
     }
     
     // Step 3: Fulfil Request
-    const { regionId, nationId } = await handleRegionAndNation(region, nation); // Handle Region and Nation
+    const transaction: Transaction = await sequelize.transaction();
     try {
-        const newRecipe = await Recipe.create({ // Create the new Recipe object
+        const { regionId, nationId } = await handleRegionAndNation(region, nation, transaction); // Handle Region and Nation
+        // Step 3: Create the new Recipe
+        const newRecipe = await Recipe.create({
             name,
             description,
             nationId,
             regionId,
             time,
             cost: cost || 0
-        });
+        }, { transaction });
 
-        // Handle Ingredients
-        await handleIngredients(newRecipe.id, ingredients);
-        // Handle Categories and Subcategories
-        if (categories) await handleCategories(newRecipe.id, categories);
-        if (subcategories) await handleSubcategories(newRecipe.id, subcategories);
-        // Handle Recipe Instructions, Aliases, and Images if needed
-        await handleRecipeInstructions(newRecipe.id, instructions);
-        await handleRecipeAliases(newRecipe.id, aliases);
-        await handleRecipeImages(newRecipe.id, images);
+        // Step 4: Handle Ingredients
+        await handleIngredients(newRecipe.id, ingredients, transaction);
 
-        // Invalidate the old cache
+        // Step 5: Handle Categories and Subcategories
+        if (categories) await handleCategories(newRecipe.id, categories, transaction);
+        if (subcategories) await handleSubcategories(newRecipe.id, subcategories, transaction);
+
+        // Step 6: Handle Recipe Instructions, Aliases, and Images
+        await handleRecipeInstructions(newRecipe.id, instructions, transaction);
+        await handleRecipeAliases(newRecipe.id, aliases, transaction);
+        await handleRecipeImages(newRecipe.id, images, transaction);
+
+        // Step 7: Commit the transaction
+        await transaction.commit();
+
+        // Invalidate cache after commit
         await RecipeCache.invalidateCache(newRecipe.id);
         await RegionCache.invalidateCache(regionId);
 
         // Return response with the new recipe's ID
         res.status(201).json({ message: `Recipe added with ID: ${newRecipe.id}` });
+
     } catch (error) {
+        // Step 8: Rollback the transaction in case of an error
+        await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error adding recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error adding recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
@@ -222,7 +233,7 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
     const { name, description, nation, region, ingredients, instructions, aliases, categories, subcategories, images, time, cost } = req.body; // Get user data from the request body
 
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
-    if (isNaN(recipeId)) {  
+    if (isNaN(recipeId)) {
         res.status(400).json({ message: "Invalid ID format" });
         return;
     }
@@ -237,63 +248,64 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
     }
     
     // Step 3: Fulfil Request
+    const transaction = await sequelize.transaction(); // Start a new transaction
     try {
         // Find the recipe in the database
         const recipe = await Recipe.findOne({
             where: { id: recipeId },
             include: stdInclude,
+            transaction, // Pass transaction here to ensure the query is part of the transaction
         });
+
         if (!recipe) {
+            await transaction?.rollback(); // Rollback transaction if the recipe isn't found
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
 
-        // Check if the recipe name already exists (if name should be unique)
-        // const existingRecipe = await Recipe.findOne({
-        //     where: { name, id: { [Op.ne]: recipeId } }
-        // });
-        // if (existingRecipe) {
-        //     res.status(400).json({ message: `A recipe with the name '${name}' already exists.` });
-        //     return;
-        // }
+        // Start deleting existing associations within the transaction
+        await RecipeIngredient.destroy({ where: { recipeId }, transaction });
+        await RecipeCategory.destroy({ where: { recipeId }, transaction });
+        await RecipeSubcategory.destroy({ where: { recipeId }, transaction });
+        await RecipeAlias.destroy({ where: { recipeId }, transaction });
+        await RecipeImage.destroy({ where: { recipeId }, transaction });
+        await RecipeInstruction.destroy({ where: { recipeId }, transaction });
 
-        // Delete existing associations before adding new ones
-        await RecipeIngredient.destroy({ where: { recipeId } });  // Delete previous ingredients
-        await RecipeCategory.destroy({ where: { recipeId } });  // Delete previous categories
-        await RecipeSubcategory.destroy({ where: { recipeId } });  // Delete previous subcategories
-        await RecipeAlias.destroy({ where: { recipeId } });  // Delete previous aliases
-        await RecipeImage.destroy({ where: { recipeId } });  // Delete previous images
-        await RecipeInstruction.destroy({ where: { recipeId } });  // Delete previous instructions
 
-        // Handle ingredients, categories, subcategories, and region updates
-        const { regionId, nationId } = await handleRegionAndNation(region, nation);
-        await handleIngredients(recipe.id, ingredients);  // Handling ingredients (replace)
-        await handleCategories(recipe.id, categories as string[]);  // Handling categories (replace)
-        await handleSubcategories(recipe.id, subcategories as string[]);  // Handling subcategories (replace)
-        await handleRecipeInstructions(recipe.id, instructions as string[]);  // Handling instructions (replace)
-        await handleRecipeAliases(recipe.id, aliases as string[]);  // Handling aliases (replace)
-        await handleRecipeImages(recipe.id, images as Image[]);  // Handling images (replace)
+        // Handle ingredients, categories, subcategories, instructions, aliases, and images updates in the transaction
+        await handleIngredients(recipe.id, ingredients, transaction); 
+        await handleCategories(recipe.id, categories as string[], transaction); 
+        await handleSubcategories(recipe.id, subcategories as string[], transaction);
+        await handleRecipeInstructions(recipe.id, instructions as string[], transaction); 
+        await handleRecipeAliases(recipe.id, aliases as string[], transaction); 
+        await handleRecipeImages(recipe.id, images as Image[], transaction);
 
-        // Update the recipe fields in the database
+        // Update the recipe fields in the database, also part of the transaction
+        // Handle region and nation, including transaction
+        const { regionId, nationId } = await handleRegionAndNation(region, nation, transaction); 
         await recipe.update({
             name,
             description,
             nation,
-            regionId,  // Using regionId after resolving region
-            nationId,  // Using nationId after resolving nation
+            regionId,
+            nationId,
             time,
             cost: cost || 0,
-        });
+        }, { transaction });
+
+        // Commit the transaction if all operations succeed
+        await transaction?.commit();
 
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
         await RegionCache.invalidateCache(regionId);
 
-        
-
         // Return the updated recipe data
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        if (transaction) {
+            await transaction.rollback(); // If anything goes wrong, rollback the transaction
+        }
         console.error(error);
         res.status(500).json({ message: 'Error replacing recipe data', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
@@ -314,18 +326,21 @@ export const updateRecipeById = async (req: Request, res: Response) => {
         res.status(400).json(validationResult); // If validation fails, return the error message
         return;
     }
-    
+
     // Step 3: Fulfil Request
+    const transaction = await sequelize.transaction(); // Start a new transaction
     try {
         const recipe = await Recipe.findOne({ // Find the recipe in the database
             where: { id: recipeId },
-            include: stdInclude
+            include: stdInclude,
+            transaction, // Pass transaction to ensure the query is part of the transaction
         });
         if (!recipe) {
+            await transaction.rollback(); // Rollback if recipe not found
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
         }
-        
+
         const updatedFields = { // Handle fields that are passed in the request
             name: name || recipe.name,
             description: description || recipe.description,
@@ -334,33 +349,42 @@ export const updateRecipeById = async (req: Request, res: Response) => {
         };
 
         // Handle updates for relational data (ingredients, categories, subcategories, etc.)
-        if (ingredients) await handleIngredients(recipeId, ingredients);
-        if (categories) await handleCategories(recipeId, categories);
-        if (subcategories) await handleSubcategories(recipeId, subcategories);
-        if (instructions) await handleRecipeInstructions(recipeId, instructions);
-        if (aliases) await handleRecipeAliases(recipeId, aliases);
-        if (images) await handleRecipeImages(recipeId, images);
-        // Handle the region and nation update
-        const { regionId, nationId } = await handleRegionAndNation(region, nation);
+        if (ingredients) await handleIngredients(recipeId, ingredients, transaction);
+        if (categories) await handleCategories(recipeId, categories, transaction);
+        if (subcategories) await handleSubcategories(recipeId, subcategories, transaction);
+        if (instructions) await handleRecipeInstructions(recipeId, instructions, transaction);
+        if (aliases) await handleRecipeAliases(recipeId, aliases, transaction);
+        if (images) await handleRecipeImages(recipeId, images, transaction);
 
-        // Now update the recipe fields in the database
+        // Handle the region and nation update (inside transaction)
+        const { regionId, nationId } = await handleRegionAndNation(region, nation, transaction);
+        // Now update the recipe fields in the database (inside transaction)
         await recipe.update({
             ...updatedFields, // Spread the updated fields
             regionId,  // Update regionId after resolving region
             nationId,  // Update nationId after resolving nation
-        });
+        }, { transaction });
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
         await RegionCache.invalidateCache(regionId);
-        
+
         // Step 4: Return the updated recipe details
         const updatedRecipe = await getRecipeDetails(recipeId);
         res.status(200).json(updatedRecipe);
     } catch (error) {
+        // If an error occurs, rollback the transaction
+        if (transaction) {
+            await transaction.rollback();
+        }
         console.error(error);
-        res.status(500).json({ message: 'Error updating recipe data', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error updating recipe data', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 };
+
 
 // Get Recipes with a given name
 export const getAllRecipeWithName = async (req: Request, res: Response) => {
@@ -461,65 +485,86 @@ export const getRecipeNamesById = async (req: Request, res: Response) => {
 
 // Replace aliases for a specific Recipe
 export const replaceAliasForRecipeById = async (req: Request, res: Response) => {
-    const { id } = req.params; // Step 1: get user input. Recipe ID from params
+    const { id } = req.params; // Recipe ID from params
     const { aliases } = req.body; // New aliases from request body
   
-    
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input. Ensure recipeId is an integer.
-    if (isNaN(recipeId)) {
-      res.status(400).json({ message: 'Invalid recipe ID' });
-      return;
-    }
-    const validationResult = validateRecipeData(req.body);
-    if (validationResult) {
-        res.status(400).json(validationResult); // If validation fails, return the error message
-        return;
-    }
-
-    // Step 3: Fulfil Request
-    try {
-        await RecipeAlias.destroy({
-            where: { recipeId }, // Clear the current aliases (delete all existing aliases for this recipe)
-        });
-        await handleRecipeAliases(recipeId, aliases);
-        // Invalidate the old cache
-        await RecipeCache.invalidateCache(recipeId);
-    
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
-        res.status(200).json(await getRecipeDetails(recipeId));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error replacing aliases for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
-    }
-  };
-
-// Add a new alias for a specific Recipe
-export const addAliasToRecipeById = async (req: Request, res: Response) => {
-    const { id } = req.params; // Step 1: get user input. Recipe ID from params
-    const { aliases } = req.body; // New aliases from request body
-  
-    // Ensure recipeId is an integer
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const recipeId = parseInt(id, 10); // Ensure recipeId is an integer
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
     }
     const validationResult = validateRecipeData(req.body);
     if (validationResult) {
-        res.status(400).json(validationResult); // If validation fails, return the error message
+        res.status(400).json(validationResult); // Return error if validation fails
         return;
     }
 
-    // Step 3: Fulfil Request
+
+    // Step 3: Fulfill request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        await handleRecipeAliases(recipeId, aliases);
+        // Step 1: Delete existing aliases for the recipe (inside transaction)
+        await RecipeAlias.destroy({
+            where: { recipeId },
+            transaction, // Pass the transaction
+        });
+        // Step 2: Handle adding new aliases (inside transaction)
+        await handleRecipeAliases(recipeId, aliases, transaction);
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the updated recipe along with the new aliases
+
+        // Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        // If an error occurs, rollback the transaction
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error adding alias to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error replacing aliases for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
+    }
+};
+
+// Add a new alias for a specific Recipe
+export const addAliasToRecipeById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Recipe ID from params
+    const { aliases } = req.body; // New aliases from request body
+  
+    // Ensure recipeId is an integer
+    const recipeId = parseInt(id, 10);
+    if (isNaN(recipeId)) {
+        res.status(400).json({ message: 'Invalid recipe ID' });
+        return;
+    }
+    const validationResult = validateRecipeData(req.body);
+    if (validationResult) {
+        res.status(400).json(validationResult); // Return error if validation fails
+        return;
+    }
+
+    // Step 3: Fulfill request
+    const transaction = await sequelize.transaction(); // Start a transaction
+    try {
+        // Step 1: Handle adding new aliases (inside transaction)
+        await handleRecipeAliases(recipeId, aliases, transaction);
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+
+        // Invalidate the old cache
+        await RecipeCache.invalidateCache(recipeId);
+
+        // Return the updated recipe along with new aliases
+        res.status(200).json(await getRecipeDetails(recipeId));
+    } catch (error) {
+        // If an error occurs, rollback the transaction
+        if (transaction) await transaction.rollback();
+
+        console.error(error);
+        res.status(500).json({ message: 'Error adding alias to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 };
 
@@ -558,11 +603,11 @@ export const getRecipeIngredientsById = async (req: Request, res: Response) => {
 };
 
 // Replace Ingredients for a specific Recipe
-export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
-    const {id} = req.params; // Step 1: get user input
-    const {ingredients} = req.body;
+export const replaceRecipeIngredientsById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Get user input
+    const { ingredients } = req.body;
 
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const recipeId = parseInt(id, 10); // Validate and parse user input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
@@ -573,28 +618,41 @@ export const replaceRecipeIngredientsById = async (req:Request, res:Response)=>{
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
+        // Step 1: Delete existing ingredients for the recipe (inside transaction)
         await RecipeIngredient.destroy({
-          where: { recipeId }, // Delete ingredients associated with this recipe
+            where: { recipeId },
+            transaction, // Pass the transaction
         });
-        await handleIngredients(recipeId, ingredients);
+
+        // Step 2: Handle adding new ingredients (inside transaction)
+        await handleIngredients(recipeId, ingredients, transaction);
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
-        await RecipeCache.invalidateCache(recipeId);  
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        await RecipeCache.invalidateCache(recipeId);
+
+        // Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error replacing ingredients for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error replacing ingredients for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Add new Ingredients for a specific Recipe
-export const addRecipeIngredientsById = async(req:Request, res:Response) => {
-    const {id} = req.params; // Step 1: get user input
-    const {ingredients} = req.body;
-    
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+export const addRecipeIngredientsById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Get user input
+    const { ingredients } = req.body;
+
+    const recipeId = parseInt(id, 10); // Validate and parse user input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
@@ -605,25 +663,35 @@ export const addRecipeIngredientsById = async(req:Request, res:Response) => {
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        await handleIngredients(recipeId, ingredients);
+        // Step 1: Handle adding new ingredients (inside transaction)
+        await handleIngredients(recipeId, ingredients, transaction);
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
-        await RecipeCache.invalidateCache(recipeId); 
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+        await RecipeCache.invalidateCache(recipeId);
+
+        // Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error adding ingredient to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error adding ingredient to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 
 // Remove a Recipe Ingredient by Id with Ingredient Id
-export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:Response) => {
-    const {id, ingredient_id} = req.params; // Step 1: get user input
+export const removeRecipeIngredientByIdandIngredientId = async (req: Request, res: Response) => {
+    const { id, ingredient_id } = req.params; // Get user input
 
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
+    const recipeId = parseInt(id, 10); // Validate and parse user input
     const ingredientId = parseInt(ingredient_id, 10);
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
@@ -633,12 +701,14 @@ export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:
         res.status(400).json({ message: 'Invalid ingredient ID' });
         return;
     }
-    
-    // Step 3: Fulfil Request
+
+    // Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        // Check if the ingredient exists for the recipe
+        // Step 1: Check if the ingredient exists for the recipe
         const ingredientExists = await RecipeIngredient.findOne({
             where: { recipeId, ingredientId },
+            transaction, // Pass the transaction
         });
         if (!ingredientExists) {
             res.status(404).json({
@@ -647,19 +717,30 @@ export const removeRecipeIngredientByIdandIngredientId = async(req:Request, res:
             return;
         }
 
+        // Step 2: Delete the ingredient (inside transaction)
         await RecipeIngredient.destroy({
-          where: { recipeId, ingredientId }, // Clear the current ingredients for this recipe (delete all existing ingredients for this recipe)
+            where: { recipeId, ingredientId },
+            transaction, // Pass the transaction
         });
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
 
-        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
-        res.status(204).json({message:`Deleted Ingredient with id ${ingredientId} from recipe with id ${recipeId}`});
+        // Return the success message
+        res.status(204).json({
+            message: `Deleted Ingredient with id ${ingredientId} from recipe with id ${recipeId}`,
+        });
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error removing ingredient for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error removing ingredient for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 // Get the Instructions for a Recipe
 export const getRecipeInstructionsById = async (req:Request, res:Response) => {
@@ -692,11 +773,11 @@ export const getRecipeInstructionsById = async (req:Request, res:Response) => {
 }
 
 // Replace the Instructions for a Recipe
-export const replaceRecipeInstructionsById = async(req:Request, res:Response) => {
-    const {id} = req.params; // Step 1: get user input
-    const {instructions} = req.body;
+export const replaceRecipeInstructionsById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Step 1: get user input
+    const { instructions } = req.body;
 
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input 
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
         return;
@@ -707,21 +788,34 @@ export const replaceRecipeInstructionsById = async(req:Request, res:Response) =>
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Step 3: Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
+        // Step 1: Delete the existing instructions for this recipe (inside transaction)
         await RecipeInstruction.destroy({
-          where: { recipeId }, // Clear the current instructions specifically for this recipe (delete all existing instructions for this recipe)
+            where: { recipeId },
+            transaction, // Pass the transaction
         });
-        await handleRecipeInstructions(recipeId, instructions);
+
+        // Step 2: Add new instructions (inside transaction)
+        await handleRecipeInstructions(recipeId, instructions, transaction);
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+
+        // Step 4: Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error replacing instructions for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error replacing instructions for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 // Get all Categories for a Recipe
 export const getRecipeCategoriesById = async(req:Request, res:Response) => {
@@ -759,9 +853,9 @@ export const getRecipeCategoriesById = async(req:Request, res:Response) => {
 }
 
 // Add new Categories to a Recipe
-export const addRecipeCategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params; // Step 1: get user input
-    const {categories} = req.body;
+export const addRecipeCategoriesById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Step 1: get user input
+    const { categories } = req.body;
     
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
@@ -774,22 +868,32 @@ export const addRecipeCategoriesById = async(req:Request, res:Response) => {
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Step 3: Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        await handleCategories(recipeId, categories);
+        // Add categories (inside transaction)
+        await handleCategories(recipeId, categories, transaction);
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the new recipe, include success (OR FAILURE) message
+
+        // Step 4: Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error adding category to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
-    }
-}
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
 
-// Remove a Category from a Recipe BY Id
-export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Response) => {
-    const {id, category_id} = req.params; // Step 1: get user input
+        console.error(error);
+        res.status(500).json({ message: 'Error adding category to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
+    }
+};
+
+// Remove a Category from a Recipe By Id
+export const removeRecipeCategoryByIdandCategoryId = async (req: Request, res: Response) => {
+    const { id, category_id } = req.params; // Step 1: get user input
 
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     const categoryId = parseInt(category_id, 10);
@@ -802,11 +906,13 @@ export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Resp
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Step 3: Fulfill Request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        // Check if the category exists for the recipe
+        // Check if the category exists for the recipe (inside transaction)
         const categoryExists = await RecipeCategory.findOne({
             where: { recipeId, categoryId },
+            transaction, // Pass the transaction
         });
 
         if (!categoryExists) {
@@ -815,18 +921,29 @@ export const removeRecipeCategoryByIdandCategoryId = async(req:Request, res:Resp
             });
             return;
         }
+
+        // Delete the category association for the recipe (inside transaction)
         await RecipeCategory.destroy({
-            where: { recipeId, categoryId }, // Delete only the recipecategory with id categoryId for this recipe(recipeId)
+            where: { recipeId, categoryId },
+            transaction, // Pass the transaction
         });
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
-        res.status(204).json({message:`Deleted Category with id ${categoryId} from recipe with id ${recipeId}`});
+
+        // Step 4: Return success message (204 means no content returned)
+        res.status(204).json({ message: `Deleted Category with id ${categoryId} from recipe with id ${recipeId}` });
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error removing category for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error removing category for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 
 // Get all Subcategories for a Recipe
@@ -866,9 +983,9 @@ export const getRecipeSubcategoriesById = async(req:Request, res:Response) => {
 
 
 // Add new Subcategories to a Recipe
-export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
-    const {id} = req.params; // Step 1: get user input
-    const {subcategories} = req.body;
+export const addRecipeSubcategoriesById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Step 1: get user input
+    const { subcategories } = req.body;
     
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
@@ -882,23 +999,33 @@ export const addRecipeSubcategoriesById = async(req:Request, res:Response) => {
     }
 
     // Step 3: Fulfil request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        await handleSubcategories(recipeId, subcategories); // update RecipeSubcategory (and Subcategory if new addition) DBs by adding new Subcategory Objects
+        // Add subcategories (inside transaction)
+        await handleSubcategories(recipeId, subcategories, transaction); // Pass transaction
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);  
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+
+        // Step 4: Return the updated recipe
         res.status(201).json(await getRecipeDetails(recipeId));
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error adding subcategory to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error adding subcategory to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
 // Remove a Subcategory from Recipe by Id
-export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, res:Response, next:Function) => {
-    const {id, subcategory_id} = req.params; // Step 1: get user input
+export const removeRecipeSubcategoriesByIdandSubcategoryId = async (req: Request, res: Response) => {
+    const { id, subcategory_id } = req.params; // Step 1: get user input
 
-    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input. Check if the id is a valid number (ID should be numeric) for now, works ok
+    const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     const subcategoryId = parseInt(subcategory_id, 10);
     if (isNaN(recipeId)) {
         res.status(400).json({ message: 'Invalid recipe ID' });
@@ -909,31 +1036,44 @@ export const removeRecipeSubcategoriesByIdandSubcategoryId = async(req:Request, 
         return;
     }
 
-    // Step 3: Fulfil Request
+    // Step 3: Fulfil request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        // Check if the subcategory exists for the recipe
+        // Check if the subcategory exists for the recipe (inside transaction)
         const subcategoryExists = await RecipeSubcategory.findOne({
             where: { recipeId, subcategoryId },
+            transaction, // Pass transaction
         });
 
         if (!subcategoryExists) {
             res.status(404).json({
-                message: `SUbcategory with ID ${subcategoryId} not found for recipe with ID ${recipeId}`,
+                message: `Subcategory with ID ${subcategoryId} not found for recipe with ID ${recipeId}`,
             });
             return;
         }
+
+        // Remove the subcategory for the recipe (inside transaction)
         await RecipeSubcategory.destroy({
-            where: { recipeId, subcategoryId }, // Delete only the recipesubcategory with id subcategoryId for this recipe(recipeId)
+            where: { recipeId, subcategoryId },
+            transaction, // Pass transaction
         });
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
-        res.status(204).json({message:`Deleted Subcategory with id ${subcategoryId} from recipe with id ${recipeId}`});
+
+        // Step 4: Return the success (OR FAILURE) message (204 if successful)
+        res.status(204).json({ message: `Deleted Subcategory with id ${subcategoryId} from recipe with id ${recipeId}` });
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: 'Error removing subcategory for recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: 'Error removing subcategory for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 
 
@@ -986,10 +1126,10 @@ export const getRecipeImagesById = async(req:Request, res:Response) => {
     }
 }
 
-// Add new Images to Recipe
-export const addRecipeImageById = async(req:Request, res:Response) => {
-    const {id} = req.params; // Step 1: get user input
-    const {images} = req.body;
+// Add Recipe Image by ID
+export const addRecipeImageById = async (req: Request, res: Response) => {
+    const { id } = req.params; // Step 1: get user input
+    const { images } = req.body;
 
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     if (isNaN(recipeId)) {
@@ -1002,24 +1142,31 @@ export const addRecipeImageById = async(req:Request, res:Response) => {
         return;
     }
 
-    // Step 3: Fulfil request
+    // Step 3: Fulfill request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        await handleRecipeImages(recipeId, images); // update RecipeImage DB by adding new RecipeImage Objects
+        await handleRecipeImages(recipeId, images, transaction); // Pass transaction to handleRecipeImages function
+
+        // Commit the transaction after all database operations are successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-  
-        // Step 4: Return the updated recipe, include success (OR FAILURE) message
+
+        // Step 4: Return the updated recipe
         res.status(200).json(await getRecipeDetails(recipeId));
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding image to recipe', error:`${(error as Error).name}: ${(error as Error).message}` });
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
+        console.error(error);
+        res.status(500).json({ message: 'Error adding image to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 }
 
-
-// Remove Image of Recipe
-export const removeRecipeImageByIdandImageId = async(req:Request, res:Response) => {
-    const {id, image_id} = req.params; // Step 1: get user input
+// Remove Recipe Image by ID
+export const removeRecipeImageByIdandImageId = async (req: Request, res: Response) => {
+    const { id, image_id } = req.params; // Step 1: get user input
 
     const recipeId = parseInt(id, 10); // Step 2: validate and parse user input, return if bad input
     const imageId = parseInt(image_id, 10);
@@ -1032,11 +1179,13 @@ export const removeRecipeImageByIdandImageId = async(req:Request, res:Response) 
         return;
     }
 
-    // Step 3: Fulfil request
+    // Step 3: Fulfill request
+    const transaction = await sequelize.transaction(); // Start a transaction
     try {
-        // Check if the image exists for the recipe
+        // Check if the image exists for the recipe (inside transaction)
         const imageExists = await RecipeImage.findOne({
-            where: { recipeId, imageId },
+            where: { recipeId, id: imageId },
+            transaction, // Pass the transaction
         });
 
         if (!imageExists) {
@@ -1045,15 +1194,26 @@ export const removeRecipeImageByIdandImageId = async(req:Request, res:Response) 
             });
             return;
         }
-        await RecipeImage.destroy({ // Delete only the recipeimage with id imageId for this recipe(recipeId)
-            where: { recipeId, id:imageId }, 
+
+        // Remove the image for the recipe (inside transaction)
+        await RecipeImage.destroy({
+            where: { recipeId, id: imageId },
+            transaction, // Pass the transaction
         });
+
+        // Commit the transaction if everything is successful
+        await transaction.commit();
+
         // Invalidate the old cache
         await RecipeCache.invalidateCache(recipeId);
-        // Step 4: Return the success (OR FAILURE) message(but nothing will show since 204 if successful)
-        res.status(204).json({message:`Deleted Image with id ${imageId} from recipe with id ${recipeId}`});
+
+        // Step 4: Return the success (OR FAILURE) message (204 if successful)
+        res.status(204).json({ message: `Deleted Image with id ${imageId} from recipe with id ${recipeId}` });
     } catch (error) {
+        // Rollback the transaction if an error occurs
+        if (transaction) await transaction.rollback();
+
         console.error(error);
-        res.status(500).json({ message: `Error removing image-${imageId} for recipe`, error:`${(error as Error).name}: ${(error as Error).message}` });
+        res.status(500).json({ message: `Error removing image-${imageId} for recipe`, error: `${(error as Error).name}: ${(error as Error).message}` });
     }
 }

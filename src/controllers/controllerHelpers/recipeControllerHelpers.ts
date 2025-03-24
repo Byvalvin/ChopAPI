@@ -1,7 +1,7 @@
 import { normalizeString } from '../../utils';
 import { Recipe as RecipeI, RecipeIngredient as RecipeIngredientI, Image } from '../../interface';
 import Recipe from '../../models/Recipe';  // Import the Recipe model
-import { Op, Includeable, Sequelize } from 'sequelize';
+import { Op, Includeable, Sequelize, Transaction } from 'sequelize';
 import Ingredient from '../../models/Ingredient';
 import RecipeIngredient from '../../models/RecipeIngredient';
 import Category from '../../models/Category';
@@ -107,49 +107,49 @@ export const validateRecipeData = (data: any) => {
 
 
 // Helper to handle Ingredients (Update or Insert)
-export const handleIngredients = async (recipeId: number, ingredients: any[]) => {
+export const handleIngredients = async (recipeId: number, ingredients: any[], transaction: Transaction) => {
     for (const ingredient of ingredients) {
         const { name, quantity, unit } = ingredient;
-        // Normalize the ingredient name
-        const normalizedIngredientName:string = normalizeString(name);
+        const normalizedIngredientName: string = normalizeString(name);
+
         let [existingIngredient, created] = await Ingredient.findOrCreate({
             where: { name: normalizedIngredientName },
-            defaults: { name: normalizedIngredientName }
+            defaults: { name: normalizedIngredientName },
+            transaction // Pass the transaction here
         });
 
-        // Check if the ingredient already exists for the given recipe
         const existingRecipeIngredient = await RecipeIngredient.findOne({
-            where: { recipeId, ingredientId: existingIngredient.id }
+            where: { recipeId, ingredientId: existingIngredient.id },
+            transaction
         });
+
         if (existingRecipeIngredient) {
-            // If the ingredient exists, update it
-            if(quantity)
-                await existingRecipeIngredient.update({ quantity });
-            if(unit)
-                await existingRecipeIngredient.update({ unit });
+            if (quantity) await existingRecipeIngredient.update({ quantity }, { transaction });
+            if (unit) await existingRecipeIngredient.update({ unit }, { transaction });
         } else {
-            // Otherwise, insert the new ingredient
             await RecipeIngredient.create({
                 recipeId,
                 ingredientId: existingIngredient.id,
                 quantity,
                 unit,
-            });
+            }, { transaction });
         }
     }
 };
 // Handle Categories (Update or Insert)
-export const handleCategories = async (recipeId: number, categories: string[]): Promise<void> => {
+export const handleCategories = async (recipeId: number, categories: string[], transaction: Transaction): Promise<void> => {
     for (const category of categories) {
         const categoryName:string = normalizeString(category);
         let [existingCategory] = await Category.findOrCreate({
             where: { name: categoryName },
-            defaults: { name: categoryName }
+            defaults: { name: categoryName },
+            transaction // Pass the transaction here
         });
 
         // Check if the RecipeCategory already exists for this recipe
         const existingRecipeCategory = await RecipeCategory.findOne({
-            where: { recipeId, categoryId: existingCategory.id }
+            where: { recipeId, categoryId: existingCategory.id },
+            transaction // Pass the transaction here
         });
 
         if (!existingRecipeCategory) {
@@ -157,24 +157,26 @@ export const handleCategories = async (recipeId: number, categories: string[]): 
             await RecipeCategory.create({
                 recipeId,
                 categoryId: existingCategory.id
-            });
+            }, { transaction });
         }
     }
 };
 
 
 // Handle Subcategories (Update or Insert)
-export const handleSubcategories = async (recipeId: number, subcategories: string[]): Promise<void> => { 
+export const handleSubcategories = async (recipeId: number, subcategories: string[], transaction: Transaction): Promise<void> => { 
     for (const subcategory of subcategories) {
         const subcategoryName:string = normalizeString(subcategory);
         let [existingSubcategory] = await Subcategory.findOrCreate({
             where: { name: subcategoryName },
-            defaults: { name: subcategoryName }
+            defaults: { name: subcategoryName },
+            transaction
         });
 
         // Check if the RecipeSubcategory already exists for this recipe
         const existingRecipeSubcategory = await RecipeSubcategory.findOne({
-            where: { recipeId, subcategoryId: existingSubcategory.id }
+            where: { recipeId, subcategoryId: existingSubcategory.id },
+            transaction
         });
 
         if (!existingRecipeSubcategory) {
@@ -182,77 +184,83 @@ export const handleSubcategories = async (recipeId: number, subcategories: strin
             await RecipeSubcategory.create({
                 recipeId,
                 subcategoryId: existingSubcategory.id
-            });
+            }, { transaction });
         }
     }
 };
 
 // Handle Region (Update or Insert)
-export const handleRegionAndNation = async (region: string, nation: string): Promise<{ regionId: number, nationId: number }> => {
+export const handleRegionAndNation = async (region: string, nation: string, transaction : Transaction): Promise<{ regionId: number, nationId: number }> => {
     const regionName:string = normalizeString(region), nationName:string = normalizeString(nation);
     let [existingRegion] = await Region.findOrCreate({
         where: { name: regionName },
-        defaults: { name: regionName }
+        defaults: { name: regionName },
+        transaction
     });
 
     let [existingNation] = await Nation.findOrCreate({
         where: { name: nationName },
-        defaults: { name: nationName}
+        defaults: { name: nationName},
+        transaction
     });
 
     // Now, add the region-nation relationship if it doesn't already exist
     const [regionNation, createdRegionNation] = await RegionNation.findOrCreate({
         where: { regionId: existingRegion.id, nationId: existingNation.id },
+        transaction
     });
     return { regionId: existingRegion.id, nationId: existingNation.id };
 };
 
 // Handle Recipe Instructions (Update or Insert)
-export const handleRecipeInstructions = async (recipeId: number, instructions: string[]): Promise<void> => {
+export const handleRecipeInstructions = async (recipeId: number, instructions: string[], transaction: Transaction): Promise<void> => {
     if (instructions && instructions.length > 0) { // Loop through the instructions and update or create as needed
         for (const [index, instruction] of instructions.entries()) {
             const existingInstruction = await RecipeInstruction.findOne({
-                where: { recipeId, step: index + 1 }
+                where: { recipeId, step: index + 1 },
+                transaction
             });
 
             if (existingInstruction) { // Update existing instruction if it exists
-                await existingInstruction.update({ instruction });
+                await existingInstruction.update({ instruction }, { transaction });
             } else {
                 // Otherwise, create a new instruction
                 await RecipeInstruction.create({
                     recipeId,
                     step: index + 1,
                     instruction
-                });
+                }, { transaction });
             }
         }
     }
 };
 // Handle Recipe Aliases (Update or Insert)
-export const handleRecipeAliases = async (recipeId: number, aliases: string[]): Promise<void> => {
+export const handleRecipeAliases = async (recipeId: number, aliases: string[], transaction: Transaction): Promise<void> => {
     if (aliases && aliases.length > 0) {
         for (const alias of aliases) {
             const existingAlias = await RecipeAlias.findOne({ // Check if the alias already exists for this recipe
-                where: { recipeId, alias }
+                where: { recipeId, alias },
+                transaction
             });
             if (!existingAlias) {
                 // If the alias doesn't exist, create it
                 await RecipeAlias.create({
                     recipeId,
                     alias
-                });
+                }, { transaction });
             }
         }
     }
 };
 // Handle Recipe Images (Update or Insert)
-export const handleRecipeImages = async (recipeId: number, images: Image[]): Promise<void> => {
+export const handleRecipeImages = async (recipeId: number, images: Image[], transaction: Transaction): Promise<void> => {
     if (images && images.length > 0) {
         for (const image of images) {
             const { url, type, caption } = image;
             
             const existingImage = await RecipeImage.findOne({ // Check if the image already exists for this recipe
-                where: { recipeId, url }
+                where: { recipeId, url },
+                transaction
             });
             if (!existingImage) {
                 // If the image doesn't exist, create it
@@ -262,9 +270,9 @@ export const handleRecipeImages = async (recipeId: number, images: Image[]): Pro
                     type: type || null,
                     caption: caption || null,
                     addedAt: new Date()  // Automatically set the current date for addedAt
-                });
+                }, { transaction });
             }else{
-                await existingImage.update({ url, type:type || null, caption: caption || null, updatedAt: new Date() });
+                await existingImage.update({ url, type:type || null, caption: caption || null, updatedAt: new Date() }, { transaction });
             }
         }
     }
