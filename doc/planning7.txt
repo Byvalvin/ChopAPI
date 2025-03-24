@@ -1,0 +1,70 @@
+Main Tables:
+- Recipe: Id(Primary Key), Primary_Name, Description, Region_Id(Foreign Key to Region), Nation_Id(Foreign Key to Nation), Est_Time(Minutes), Est_Cost(USD)
+- Ingredient: Id(Primary Key), Name
+- Region: Id(Primary Key), Name(Unique)
+- Nation: Id(Primary Key), Name
+- Category: Id(Primary Key), Name
+- Subcategory: Id(Primary Key), Name
+
+Junction Tables:
+- Recipe_Aliases: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Alias (The alternate name or alias)
+- Recipe_Ingredients: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Ingredient_Id(Foreign Key to Ingredient), Amount, Unit
+- Recipe_Instructions: Id (Primary Key), Recipe_Id(Foreign Key to Recipe), Step(Step number), Instruction(The actual instruction text)
+- Recipe_Images: Id(Primary Key), Recipe_Id (Foreign Key to Recipe), Url, Type, Caption, Added_At
+- Recipe_Categories: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Category_Id(Foreign Key to Category)
+- Recipe_Subcategories: Id(Primary Key), Recipe_Id(Foreign Key to Recipe), Subcategory_Id(Foreign Key to Subcategory)
+- Region_Nations: Id(Primary Key), Region_Id(Foreign Key to Region), Nation_Id(Foreign Key to Nation)
+
+
+Summary of All Endpoints & Query Parameters
+Query Parameter keynotes
+	Can be multiple, comma separated Query parameters: Region, Nation, category, sub_category
+	Can be range or exact: time, cost
+Recipes Endpoints:
+    GET /chop/api/recipes: Description: Fetch all available recipes. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, search.
+    POST /chop/api/recipes: Description: Add a new recipe. Request body with new recipe data.
+    GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
+    PUT /chop/api/recipes/{id}: Description: Replace recipe by id. Request body with updated recipe data.
+    PATCH /chop/api/recipes/{id}: Description: Edit recipe by id. Request body with updated recipe data.
+    GET /chop/api/recipes/{name}: Description: Fetch all recipes with the given name(checks both Name and other names). Query parameters: Filter by category, sub_category, nation, region, time, cost, limit, page, sort.
+    GET /chop/api/recipes/{id}/names: Description: Fetch all available names for a recipe. No query parameters.
+    POST /chop/api/recipes/{id}/names: Description: REplace aliases for a recipe. No query parameters
+    PUT /chop/api/recipes/{id}/names: Description: Add another alias for a recipe. No query parameters.
+    GET /chop/api/recipes/{id}/ingredients: Description: Fetch the ingredients for a recipe. No query parameters.
+    POST /chop/api/recipes/{id}/ingredients: Description: Replace the ingredients for a recipe. Request body with new ingredients.
+    PUT /chop/api/recipes/{id}/ingredients: Description: Add another ingredient for a recipe. Request body with new ingredients.
+    PATCH /chop/api/recipes/{id}/ingredients/{ingredient_id}: Description: Edit a specific ingredient for a recipe. Request body with updated ingredients.
+    DELETE /chop/api/recipes/{id}/ingredients/{ingredient_id}: Description: Remove aningredient for a recipe by ingredient id. No query parameters.
+    GET /chop/api/recipes/{id}/instructions: Description: Fetch the instructions of a recipe. No query parameters.
+    PUT /chop/api/recipes/{id}/instructions: Description: Replace the instructions of a recipe. Request body with new instructions data.
+    GET /chop/api/recipes/{id}/categories: Description: Fetch all categories for a recipe. No query parameters.
+    PUT /chop/api/recipes/{id}/categories: Description: Add more categories for a recipe. No query parameters.
+    DELETE /chop/api/recipes/{id}/categories/{category_id}: Description: Remove category from recipe by category id. No query parameters.
+    DELETE /chop/api/recipes/{id}/categories/{category_name}: Description: Remove category from recipe by category name. No query parameters.
+    GET /chop/api/recipes/{id}/subcategories: Description: Fetch all subcategories for a recipe. No query parameters.
+    PUT /chop/api/recipes/{id}/subcategories: Description: Add more subcategories for a recipe. No query parameters.
+    DELETE /chop/api/recipes/{id}/subcategories/{subcategory_id}: Description: Remove subcategory from recipe by subcategory id. No query parameters.
+    DELETE /chop/api/recipes/{id}/subcategories/{subcategory_name}: Description: Remove subcategory from recipe by subcategory name. No query parameters.
+    GET /chop/api/recipes/{id}/images: Description: Fetch all available images for a recipe. Query parameters: limit, page.
+    POST /chop/api/recipes/{id}/images: Description: Add new image for a recipe. Request body with image data.
+    DELETE /chop/api/recipes/{id}/images/{image_id}: Description: Remove image from recipe by image id. No query parameters.
+
+Ingredients Endpoints:
+    GET /chop/api/ingredients: Description: Fetch all available ingredients. Query parameters: sort, limit, page, search.
+    GET /chop/api/ingredients/{ingredient_name}/recipes: Description: Fetch all available recipes that require a specific ingredient. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, 	search, amount, unit.
+    GET /chop/api/ingredients/{id}/recipes: Description: Fetch all available recipes that require a specific ingredient by id. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, search, amount, unit.
+
+Nations Endpoints:
+    GET /chop/api/nations: Description: Fetch all available nations with at least 1 recipe. Query parameters: region, sort, limit, page, search. 
+
+Regions Endpoints:
+    GET /chop/api/regions: Description: Fetch all available regions with at least 1 recipe. Query parameters: sort, search. 
+    GET /chop/api/regions/{id}: Description: Fetch region by id. No query parameters.
+    GET /chop/api/regions/{id}/nations: Description: Fetch all nations in a specific region. Query parameters: sort, search.
+    GET /chop/api/regions/{region}/nations: Description: Fetch all nations in a specific region. Query parameters: sort, search.
+
+Categories Endpoints
+    GET /chop/api/categories: Description: Fetch all available categories (e.g., main, appetizer, snack, street-food, etc.). Query parameters: sort, search.
+  
+Subcategories Endpoints
+    GET /chop/api/subcategories: Description: Fetch all available sub-categories (e.g., vegan, vegetarian, gluten-free, spicy, etc). Query parameters: sort, search.
