@@ -56,6 +56,9 @@ app.use(logger); // Middleware for logging; Use the custom logging middleware
 
 // Add your routes here
 // Define your routes here (e.g., for Recipes, Ingredients, etc.)
+
+// Redirection logic for the root route
+app.get('/', (req, res) => res.redirect(openapiDocURL));
 app.get(`${baseURL}`, (req, res) => {
   res.send("Welcome to the ChopAPI!");
 });
@@ -89,4 +92,5 @@ export default app;
 https://github.com/DarkaOnLine/SwaggerLume/issues/33
 https://github.com/DarkaOnLine/L5-Swagger/issues/431
 https://medium.com/@vishalvoid/solving-swaggeruibundle-is-not-defined-error-in-express-with-swagger-cdbc3164fd89
+https://github.com/fengkx/NodeRSSBot/issues/1662, using pooler?
 */
