@@ -83,3 +83,10 @@ import authRoutes from './routes/App/auth';
 app.use(`${baseURL}/auth`, authRoutes); // AUTH
 
 export default app;
+
+//references
+/*
+https://github.com/DarkaOnLine/SwaggerLume/issues/33
+https://github.com/DarkaOnLine/L5-Swagger/issues/431
+https://medium.com/@vishalvoid/solving-swaggeruibundle-is-not-defined-error-in-express-with-swagger-cdbc3164fd89
+*/
