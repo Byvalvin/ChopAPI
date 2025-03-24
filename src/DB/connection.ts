@@ -6,12 +6,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize Sequelize with your PostgreSQL connection string
-const DATABASE_URL = [ 
-  `postgresql://${process.env.DB_USER1}:${process.env.DB_PASSWORD}@${process.env.DB_HOST1}:${process.env.DB_PORT1}/${process.env.DB_NAME}`,
-  `postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT2}/${process.env.DB_NAME}`,
-  `postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT1}/${process.env.DB_NAME}`
-];
-const sequelize = new Sequelize(DATABASE_URL[0], {
+const DATABASE_URL = { 
+  "Direct":`postgresql://${process.env.DB_USER1}:${process.env.DB_PASSWORD}@${process.env.DB_HOST1}:${process.env.DB_PORT1}/${process.env.DB_NAME}`,
+  "Transaction_Pooler":`postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT2}/${process.env.DB_NAME}`,
+  "Session_Pooler":`postgresql://${process.env.DB_USER2}:${process.env.DB_PASSWORD}@${process.env.DB_HOST2}:${process.env.DB_PORT1}/${process.env.DB_NAME}`
+};
+const urlToUse = "Transaction_Pooler"
+const sequelize = new Sequelize(DATABASE_URL[urlToUse], {
   dialect: 'postgres',
   logging: false,  // Optional: Disable SQL query logging
   dialectOptions: {
