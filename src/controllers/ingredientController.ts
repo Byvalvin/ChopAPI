@@ -215,4 +215,4 @@ export const getRecipesThatUseIngredientById = async (req:Request, res:Response,
         res.status(500).json({ message: `Error fetching recipes with ingredient id ${ingredient_id}`, error: `${(error as Error).name}: ${(error as Error).message}` });
     }
     
-}
+};

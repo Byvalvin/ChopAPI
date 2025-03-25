@@ -400,7 +400,7 @@ router.get('/:region_id/nations', getRegionNationsByRegionId); // GET /chop/api/
  *     tags:
  *       - Regions
  */
-router.get('/:region_name/nations', getRegionNationsByRegionName); // GET /chop/api/regions/{region_name}/nations: Fetch nations of a region by region name
+router.get('/:region_name/nations', getRegionNationsByRegionName); // GET /chop/api/regions/{region_name}: Description: Fetch nations of a region region name. Query parameters: sort, limit, page.
 
 
 export default router;

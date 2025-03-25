@@ -58,4 +58,4 @@ export const getAllSubcategories = async(req:Request, res:Response) =>{
         console.log(error);
         res.status(500).json({ message: 'Error fetching subcategories from the database', error:`${(error as Error).name}: ${(error as Error).message}` })
     }
-}
+};

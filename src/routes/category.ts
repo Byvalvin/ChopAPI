@@ -5,7 +5,6 @@ import { getAllCategories } from "../controllers/categoryController";
 const router = Router();
 
 // ROUTES
-
 /**
  * @swagger
  * /chop/api/categories:
@@ -90,6 +89,6 @@ const router = Router();
  *     tags:
  *       - Categories
  */
-router.get('/', getAllCategories); // GET /chop/api/categories: Fetch all available categories
+router.get('/', getAllCategories); // GET /chop/api/categories: Description: Fetch all available categories. Query parameters: sort, limit, page, search.
 
 export default router;
