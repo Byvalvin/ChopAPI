@@ -25,8 +25,6 @@ export const getAllCategories = async(req: Request, res: Response) => {
     // Handle sort parameter
     let order: any = [];
     if (sort) {
-        order = [[sort, 'ASC']];
-    } else {
         order = [['name', 'ASC']]; // Default sorting by region name
     }
 

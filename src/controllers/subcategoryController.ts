@@ -19,8 +19,6 @@ export const getAllSubcategories = async(req:Request, res:Response) =>{
     let order : any = [];
     // Handle sort parameter
     if (sort) {
-        order = [[sort, 'ASC']];
-    } else {
         order = [['name', 'ASC']]; // Default sorting by region name
     }
 

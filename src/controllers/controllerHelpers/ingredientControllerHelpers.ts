@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { Includeable } from "sequelize/types/model";
 
+export const validSortFields = ['id', 'name'];
 export const generateIngredientFilterConditions = (queryParams: any) => {
     const { search } = queryParams;
   

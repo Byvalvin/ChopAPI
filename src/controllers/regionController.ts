@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { normalizeString, validateQueryParams } from "../utils";
-import { generateRegionFilterConditions, getRegionDetails, stdInclude } from "./controllerHelpers/regionControllerHelpers";
+import { generateRegionFilterConditions, getRegionDetails, stdInclude, validSortFields } from "./controllerHelpers/regionControllerHelpers";
 import Region from "../models/Region";
 import { Op } from "sequelize";
 
@@ -23,7 +23,7 @@ export const getAllRegions = async (req: Request, res: Response) => {
 
     // Handle sort parameter
     let order: any = [];
-    if (sort) {
+    if (sort && validSortFields.includes(sort)) {
         order = [[sort, 'ASC']];
     } else {
         order = [['name', 'ASC']]; // Default sorting by region name

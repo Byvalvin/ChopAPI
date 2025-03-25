@@ -4,6 +4,7 @@ import { normalizeString } from "../../utils";
 import Region from "../../models/Region";
 import RegionCache from "../../caching/RegionCaching";
 
+export const validSortFields = ['id', 'name'];
 
 export const stdInclude: Includeable[] = [
     {

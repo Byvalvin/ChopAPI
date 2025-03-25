@@ -155,8 +155,7 @@
               "type": "string",
               "enum": [
                 "name",
-                "category",
-                "cost"
+                "id"
               ]
             }
           },
@@ -4279,7 +4278,7 @@
               "type": "string",
               "enum": [
                 "name",
-                "code"
+                "id"
               ]
             }
           },

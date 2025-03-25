@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { generateRecipeFilterConditions, getRecipeDetails, validSortFields } from './controllerHelpers/recipeControllerHelpers';
-import { generateIngredientFilterConditions } from './controllerHelpers/ingredientControllerHelpers';
+import { generateRecipeFilterConditions, getRecipeDetails, validSortFields as vsfRecipes } from './controllerHelpers/recipeControllerHelpers';
+import { generateIngredientFilterConditions, validSortFields as vsfIngredients } from './controllerHelpers/ingredientControllerHelpers';
 import Ingredient from '../models/Ingredient';
 import Recipe from '../models/Recipe';
 import { Op } from 'sequelize';
@@ -28,7 +28,7 @@ export const getAllIngredients = async(req: Request, res: Response) => {
     // Handle sort parameter
     let order: any = [];
     // Check if sort is a string and if it's valid
-    if (typeof sort === 'string' && validSortFields.includes(sort)) {
+    if (typeof sort === 'string' && vsfIngredients.includes(sort)) {
         order = [[sort, 'ASC']];
     } else if (sort) {
         // If sort is not a valid string, you can choose to either:
@@ -93,7 +93,7 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
 
     // Apply sorting
     let order: any = [];
-    if (sort) {
+    if (sort && vsfRecipes.includes(sort)) {
         order = [[sort, 'ASC']];
     } else {
         order = [['name', 'ASC']]; // Default sorting by recipe name
@@ -167,7 +167,7 @@ export const getRecipesThatUseIngredientById = async (req:Request, res:Response,
 
     // Apply sorting
     let order: any = [];
-    if (sort) {
+    if (sort && vsfRecipes.includes(sort)) {
         order = [[sort, 'ASC']];
     } else {
         order = [['name', 'ASC']]; // Default sorting by recipe name
