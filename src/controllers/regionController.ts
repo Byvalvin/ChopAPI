@@ -192,7 +192,7 @@ export const getRegionNationsByRegionId = async(req:Request, res:Response, next:
         return;
     }
 
-}
+};
 
 export const getRegionNationsByRegionName = async(req:Request, res:Response)=>{
     const { region_name } = req.params; // Step 1: get user input. Extract the name from the request params
@@ -247,5 +247,5 @@ export const getRegionNationsByRegionName = async(req:Request, res:Response)=>{
         res.status(500).json({ message: `Error fetching region nations with name ${region_name} from the database`, error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 
-}
+};
 
