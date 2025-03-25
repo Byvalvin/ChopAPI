@@ -25,7 +25,6 @@ import {
 import RecipeCache from '../caching/RecipeCaching';
 import RegionCache from '../caching/RegionCaching';
 import sequelize from '../DB/connection';
-import { regions } from '../data';
 
 export const deleteRecipeById = async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -397,6 +396,7 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
         return;
     }
     let { category, subcategory, nation, region, time, cost, sort, limit = 10, page = 1} = queryParams; 
+    
             
     // Validate limit and page to ensure they are numbers and within reasonable bounds
     limit = Math.max(1, Math.min(Number(limit), 100));  // Max 100 recipes per page
@@ -411,6 +411,10 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
         order = [['name', 'ASC']];
     }
     const normalizedSearchTerm = normalizeString(name); // Normalize the name parameter from the request
+    if (normalizedSearchTerm.length >= 50) {
+        res.status(400).json({ message: "Search term is too long" });
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {

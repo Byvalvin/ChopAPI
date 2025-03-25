@@ -100,6 +100,10 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
     }
 
     const normalizedSearchTerm = normalizeString(ingredient_name); // Normalize the search term for consistency
+    if (normalizedSearchTerm.length >= 50) {
+        res.status(400).json({ message: "Search term is too long" });
+        return;
+    }
 
     // Step 3: Fulfill the request and query the database
     try {

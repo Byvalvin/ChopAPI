@@ -130,6 +130,10 @@ export const getRegionByRegionName = async (req: Request, res: Response) => {
         order = [['name', 'ASC']];
     }
     const normalizedSearchTerm = normalizeString(region_name); // Normalize the name parameter from the request
+    if (normalizedSearchTerm.length >= 50) {
+        res.status(400).json({ message: "Search term is too long" });
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {
@@ -218,6 +222,10 @@ export const getRegionNationsByRegionName = async(req:Request, res:Response)=>{
         order = [['name', 'ASC']];
     }
     const normalizedSearchTerm = normalizeString(region_name); // Normalize the name parameter from the request
+    if (normalizedSearchTerm.length >= 50) {
+        res.status(400).json({ message: "Search term is too long" });
+        return;
+    }
 
     // Step 3: Fulfil Request
     try {

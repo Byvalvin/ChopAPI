@@ -5,8 +5,12 @@ import dotenv from 'dotenv';
 dotenv.config();  // This will load variables from the .env file
 
 
+// Sanitize the search term to allow spaces and hyphens, remove unwanted characters
+export const sanitizeString = (str: string)=>str.replace(/[^\w\s-]/gi, ''); // Allow spaces and hyphens
+
 // Ensure that str is a valid string before calling trim(), or handle it as needed (throw error, log, etc.)
-export const normalizeString = (str: string) => typeof str === 'string' ? str.trim().toLowerCase() : '';
+export const normalizeString = (str: string) => typeof str === 'string' ? sanitizeString(str.trim().toLowerCase()) : '';
+
 
 // Utility function for pagination
 const paginate = (page: number, limit: number) => {
