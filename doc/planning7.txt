@@ -21,6 +21,7 @@ Query Parameter keynotes
 	Can be multiple, comma separated Query parameters: Region, Nation, category, sub_category
 	Can be range or exact: time, cost
 Recipes Endpoints:
+    DELETE /chop/api/recipes/{id}: Description: Remove recipe by id, REQUIRES AUTHENTICATION by creating a user. No query parameters.
     GET /chop/api/recipes: Description: Fetch all available recipes. Query parameters: Filter by category, sub_category, nation, region, time, cost, sort, limit, page, search.
     POST /chop/api/recipes: Description: Add a new recipe. Request body with new recipe data.
     GET /chop/api/recipes/{id}: Description: Fetch recipe by id. No query parameters.
