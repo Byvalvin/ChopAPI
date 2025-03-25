@@ -1822,10 +1822,10 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "integer",
-                          "description": "The unique identifier of the ingredient.",
-                          "example": 2
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the ingredient.",
+                          "example": "Tomato"
                         },
                         "quantity": {
                           "type": "number",
@@ -1975,10 +1975,10 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "integer",
-                          "description": "The unique identifier of the ingredient.",
-                          "example": 2
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the ingredient.",
+                          "example": "Tomato"
                         },
                         "quantity": {
                           "type": "number",
@@ -2222,19 +2222,9 @@
                       "type": "array",
                       "description": "The list of instructions for preparing the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "step": {
-                            "type": "integer",
-                            "description": "The step number in the instructions.",
-                            "example": 1
-                          },
-                          "instruction": {
-                            "type": "string",
-                            "description": "The detailed instruction for the recipe step.",
-                            "example": "Preheat the oven to 350°F."
-                          }
-                        }
+                        "type": "string",
+                        "description": "The detailed instruction for the recipe step, the instructions are ordered by place in list.",
+                        "example": "Preheat the oven to 350°F."
                       }
                     }
                   }
@@ -2325,19 +2315,9 @@
                     "type": "array",
                     "description": "The list of new instructions for the recipe.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "step": {
-                          "type": "integer",
-                          "description": "The step number in the instructions.",
-                          "example": 1
-                        },
-                        "instruction": {
-                          "type": "string",
-                          "description": "The detailed instruction for the recipe step.",
-                          "example": "Preheat the oven to 350°F."
-                        }
-                      }
+                      "type": "string",
+                      "description": "The detailed instruction for the recipe step, the instructions are ordered by place in list.",
+                      "example": "Preheat the oven to 350°F."
                     }
                   }
                 }
@@ -2361,19 +2341,9 @@
                       "type": "array",
                       "description": "The updated list of instructions for preparing the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "step": {
-                            "type": "integer",
-                            "description": "The step number in the instructions.",
-                            "example": 1
-                          },
-                          "instruction": {
-                            "type": "string",
-                            "description": "The detailed instruction for the recipe step.",
-                            "example": "Preheat the oven to 350°F."
-                          }
-                        }
+                        "type": "string",
+                        "description": "The detailed instruction for the recipe step, the instructions are ordered by place in list.",
+                        "example": "Preheat the oven to 350°F."
                       }
                     }
                   }
@@ -2471,19 +2441,9 @@
                       "type": "array",
                       "description": "The list of categories associated with the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "The unique ID of the category.",
-                            "example": 1
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the category.",
-                            "example": "Dessert"
-                          }
-                        }
+                        "type": "string",
+                        "description": "The name of the category.",
+                        "example": "Dessert"
                       }
                     }
                   }
@@ -2574,14 +2534,9 @@
                     "type": "array",
                     "description": "List of categories to be added to the recipe.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "description": "The ID of the category to be added.",
-                          "example": 3
-                        }
-                      }
+                      "type": "string",
+                      "description": "The name of the category to be added.",
+                      "example": "Vegetarian"
                     }
                   }
                 }
@@ -2605,19 +2560,9 @@
                       "type": "array",
                       "description": "The updated list of categories for the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "The ID of the category.",
-                            "example": 3
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the category.",
-                            "example": "Vegetarian"
-                          }
-                        }
+                        "type": "string",
+                        "description": "The name of the category.",
+                        "example": "Vegetarian"
                       }
                     }
                   }
@@ -2759,6 +2704,657 @@
                     "error": {
                       "type": "string",
                       "description": "Detailed error information."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/chop/api/recipes/{id}/subcategories": {
+      "get": {
+        "summary": "Fetch all subcategories for a specific recipe.",
+        "description": "Fetch all the subcategories associated with a recipe based on its ID. This endpoint does not require any query parameters. \nIt will return a list of subcategories for the given recipe.\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of subcategories for the specified recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the recipe."
+                    },
+                    "subcategories": {
+                      "type": "array",
+                      "description": "List of subcategories associated with the recipe.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the subcategory."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the subcategory."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid recipe ID provided in the path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe not found with the provided ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching the recipe subcategories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      },
+      "put": {
+        "summary": "Add more subcategories to a specific recipe.",
+        "description": "Add new subcategories to an existing recipe by its ID. This endpoint accepts an array of subcategory IDs in the request body.\nThe subcategories are added to the recipe in a transactional manner to ensure data consistency.\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe to which subcategories should be added.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subcategories": {
+                    "type": "array",
+                    "description": "List of subcategory IDs to be added to the recipe.",
+                    "items": {
+                      "type": "integer",
+                      "description": "The ID of a subcategory to be added."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The recipe with the newly added subcategories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the recipe."
+                    },
+                    "subcategories": {
+                      "type": "array",
+                      "description": "List of subcategories now associated with the recipe.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the subcategory."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the subcategory."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid recipe ID or invalid request body (e.g., missing or incorrect subcategory IDs).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe not found with the provided ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while adding subcategories to the recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/chop/api/recipes/{id}/subcategories/{subcategory_id}": {
+      "delete": {
+        "summary": "Remove a subcategory from a specific recipe.",
+        "description": "Remove a specific subcategory from a recipe by its `recipeId` and `subcategoryId`. This endpoint ensures that the subcategory is associated with the recipe before it can be removed. The operation is performed within a transaction to maintain data integrity.\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe from which the subcategory will be removed.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "subcategory_id",
+            "in": "path",
+            "description": "The unique identifier of the subcategory to be removed from the recipe.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully removed the subcategory from the recipe."
+          },
+          "400": {
+            "description": "Invalid recipe ID or subcategory ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The subcategory was not found for the provided recipe ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while removing the subcategory from the recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/chop/api/recipes/{id}/images": {
+      "get": {
+        "summary": "Fetch all images associated with a recipe.",
+        "description": "Fetch a list of all available images for a specific recipe identified by its `recipeId`. You can filter the images using pagination parameters `limit` and `page`. The `limit` defines the number of images per page (default is 10), and `page` defines the page number (default is 1).\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe for which images are being fetched.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of images to fetch per page. Defaults to 10, max is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number to retrieve images for. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of images associated with the specified recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "Total number of images associated with the recipe."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier for the image."
+                          },
+                          "url": {
+                            "type": "string",
+                            "description": "The URL of the image."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "The type or category of the image (e.g., thumbnail, full-size)."
+                          },
+                          "caption": {
+                            "type": "string",
+                            "description": "A short caption or description for the image."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid recipe ID or query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No images found for the specified recipe ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching recipe images.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      },
+      "post": {
+        "summary": "Add a new image for a recipe.",
+        "description": "Add one or more images to a specific recipe identified by its `recipeId`. The request body should contain image data, which could include the image URL, type (e.g., thumbnail, full-size), and an optional caption.\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe to which the image(s) will be added.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "The URL of the image."
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "The type of image (e.g., \"thumbnail\", \"full-size\")."
+                        },
+                        "caption": {
+                          "type": "string",
+                          "description": "A short caption for the image (optional)."
+                        }
+                      }
+                    },
+                    "description": "An array of images to add to the recipe."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated recipe with the newly added image(s).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the recipe."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the recipe."
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the image."
+                          },
+                          "url": {
+                            "type": "string",
+                            "description": "The URL of the image."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "The type of image (e.g., \"thumbnail\", \"full-size\")."
+                          },
+                          "caption": {
+                            "type": "string",
+                            "description": "A short caption describing the image."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid recipe ID or invalid image data in the request body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while adding the image to the recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/chop/api/recipes/{id}/images/{image_id}": {
+      "delete": {
+        "summary": "Remove an image from a recipe by image ID.",
+        "description": "Removes a specific image from a recipe identified by its `recipeId` and `imageId`. The image will be deleted from the recipe and the associated cache will be invalidated.\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the recipe from which the image will be removed.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "image_id",
+            "in": "path",
+            "description": "The unique identifier of the image to be removed from the recipe.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The image was successfully deleted from the recipe."
+          },
+          "400": {
+            "description": "Invalid recipe ID or image ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The specified image was not found for the recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while removing the image from the recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
                     }
                   }
                 }

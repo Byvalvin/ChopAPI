@@ -40,6 +40,7 @@ if (sequelize) {
 // Add your middleware here
 // MIDDLEWARE
 app.use(express.json()); // Middleware to parse JSON bodies
+// app.use(openapiDocURL, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use( //Middleware for swagger
   openapiDocURL,
   swaggerUI.serve,

@@ -1124,7 +1124,7 @@ export const getRecipeImagesById = async(req:Request, res:Response) => {
         error = (error as Error);
         res.status(500).json({ message: 'Error fetching recipe images from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 // Add Recipe Image by ID
 export const addRecipeImageById = async (req: Request, res: Response) => {
@@ -1162,7 +1162,7 @@ export const addRecipeImageById = async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Error adding image to recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 // Remove Recipe Image by ID
 export const removeRecipeImageByIdandImageId = async (req: Request, res: Response) => {
@@ -1216,4 +1216,4 @@ export const removeRecipeImageByIdandImageId = async (req: Request, res: Respons
         console.error(error);
         res.status(500).json({ message: `Error removing image-${imageId} for recipe`, error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
