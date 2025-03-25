@@ -5,6 +5,7 @@ import setupAssociations from './DB/associations';
 
 import swaggerUI from 'swagger-ui-express';
 import swaggerSpec, { swaggerUICss } from './documentation/openapiDoc';
+import {limiter} from './middleware/rateLimiting';
 
 import path from 'path';
 
@@ -39,9 +40,16 @@ if (sequelize) {
 
 // Add your middleware here
 // MIDDLEWARE
-app.use(express.json()); // Middleware to parse JSON bodies
+
+// Middleware to parse JSON bodies
+app.use(express.json()); 
+
+// Middleware for rate limiting; Apply this rate limit to all API routes
+app.use('/api/', limiter); 
+
+// Middleware for swagger
 // app.use(openapiDocURL, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
-app.use( //Middleware for swagger
+app.use(  
   openapiDocURL,
   swaggerUI.serve,
   swaggerUI.setup(null, {
@@ -50,8 +58,12 @@ app.use( //Middleware for swagger
     customCssUrl: swaggerUICss[1], //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
   })
 );
-app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, `documentation/${swaggerToUse}`))); // Serve the static Swagger JSON file
-app.use(logger); // Middleware for logging; Use the custom logging middleware
+
+// Middleware to manually Serve the static Swagger JSON file
+app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, `documentation/${swaggerToUse}`)));
+
+// Middleware for logging; Use the custom logging middleware
+app.use(logger); 
 
 
 // Add your routes here
