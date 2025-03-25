@@ -20,6 +20,913 @@
     }
   ],
   "paths": {
+    "/chop/api/categories": {
+      "get": {
+        "summary": "Fetch all available categories.",
+        "description": "Fetch a list of all available categories with the option to filter and paginate the results.\nThe response can be sorted and filtered by search term. If no categories are found, an empty list will be returned.\n",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "The field to sort categories by.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "name"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of results to return per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for paginated results.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "A search term to filter categories by name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "dessert"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of available categories, possibly filtered and paginated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of categories available."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the category."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the category."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters (e.g., invalid limit, page, or sort).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching categories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/chop/api/ingredients": {
+      "get": {
+        "summary": "Fetch all available ingredients.",
+        "description": "Fetch a list of all available ingredients, with optional filtering and pagination. You can filter ingredients by various parameters, such as search term, and sort them by specific fields.\n",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Specify the field to sort by (e.g., \"name\"). Defaults to sorting by name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "category",
+                "cost"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of ingredients to fetch per page. Defaults to 10, max is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of results to retrieve. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search for ingredients by keyword (e.g., name or category).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of ingredients with detailed information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "Total number of ingredients that match the filters."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the ingredient."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the ingredient."
+                          },
+                          "category": {
+                            "type": "string",
+                            "description": "The category the ingredient belongs to."
+                          },
+                          "cost": {
+                            "type": "integer",
+                            "description": "The cost of the ingredient."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "A short description of the ingredient."
+                          },
+                          "images": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "url": {
+                                  "type": "string",
+                                  "description": "URL to the image."
+                                },
+                                "caption": {
+                                  "type": "string",
+                                  "description": "A short caption for the image."
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching ingredients.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ingredients"
+        ]
+      }
+    },
+    "/chop/api/ingredients/{ingredient_id}/recipes": {
+      "get": {
+        "summary": "Fetch all available recipes that require a specific ingredient by ID.",
+        "description": "Fetch a list of recipes that include the specified ingredient. You can filter the results by various criteria, including category, subcategory, nation, region, time, cost, and more.\n",
+        "parameters": [
+          {
+            "name": "ingredient_id",
+            "in": "path",
+            "description": "The unique identifier for the ingredient.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter recipes by category.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sub_category",
+            "in": "query",
+            "description": "Filter recipes by subcategory.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nation",
+            "in": "query",
+            "description": "Filter recipes by nation.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "Filter recipes by region.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "description": "Filter recipes by cooking time.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cost",
+            "in": "query",
+            "description": "Filter recipes by cost.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Specify the field to sort by (e.g., \"name\", \"time\"). Defaults to sorting by recipe name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "time",
+                "cost"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of recipes to fetch per page. Defaults to 10, max is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of results to retrieve. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search for recipes that include the ingredient, by name or description.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "description": "Filter recipes by the amount of the ingredient used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "description": "Filter recipes by the unit of the ingredient (e.g., grams, cups).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of recipes that use the specified ingredient.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of recipes found."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the recipe."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the recipe."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "A brief description of the recipe."
+                          },
+                          "ingredients": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "quantity": {
+                                  "type": "string"
+                                },
+                                "unit": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "time": {
+                            "type": "string",
+                            "description": "The time required to prepare the recipe."
+                          },
+                          "cost": {
+                            "type": "string",
+                            "description": "The estimated cost of the recipe."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No recipes found that include the specified ingredient.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching recipes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ingredients"
+        ]
+      }
+    },
+    "/chop/api/ingredients/{ingredient_name}/recipes": {
+      "get": {
+        "summary": "Fetch all available recipes that require a specific ingredient by name.",
+        "description": "Fetch a list of recipes that include the specified ingredient. You can filter the results by various criteria, including category, subcategory, nation, region, time, cost, and more.\n",
+        "parameters": [
+          {
+            "name": "ingredient_name",
+            "in": "path",
+            "description": "The name of the ingredient (case-insensitive).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter recipes by category.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sub_category",
+            "in": "query",
+            "description": "Filter recipes by subcategory.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nation",
+            "in": "query",
+            "description": "Filter recipes by nation.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "Filter recipes by region.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "description": "Filter recipes by cooking time.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cost",
+            "in": "query",
+            "description": "Filter recipes by cost.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Specify the field to sort by (e.g., \"name\", \"time\"). Defaults to sorting by recipe name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "time",
+                "cost"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of recipes to fetch per page. Defaults to 10, max is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of results to retrieve. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search for recipes that include the ingredient, by name or description.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "description": "Filter recipes by the amount of the ingredient used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "description": "Filter recipes by the unit of the ingredient (e.g., grams, cups).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of recipes that use the specified ingredient.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of recipes found."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the recipe."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the recipe."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "A brief description of the recipe."
+                          },
+                          "ingredients": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "quantity": {
+                                  "type": "string"
+                                },
+                                "unit": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "time": {
+                            "type": "string",
+                            "description": "The time required to prepare the recipe."
+                          },
+                          "cost": {
+                            "type": "string",
+                            "description": "The estimated cost of the recipe."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No recipes found that include the specified ingredient.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching recipes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ingredients"
+        ]
+      }
+    },
+    "/chop/api/nations": {
+      "get": {
+        "summary": "Fetch all available nations.",
+        "description": "Fetch a list of all available nations with the option to filter, sort, and paginate the results.\nIf no nations are found, an empty list will be returned.\n",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "The field to sort nations by (default is by name).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "name"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of results to return per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for paginated results.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "A search term to filter nations by name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "Germany"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of available nations, possibly filtered, sorted, and paginated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of nations available."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the nation."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the nation."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters (e.g., invalid limit, page, or sort).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching nations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Nations"
+        ]
+      }
+    },
     "/chop/api/recipes": {
       "get": {
         "summary": "Fetch all available recipes.",
@@ -2747,17 +3654,8 @@
                       "type": "array",
                       "description": "List of subcategories associated with the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "The unique identifier of the subcategory."
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the subcategory."
-                          }
-                        }
+                        "type": "string",
+                        "description": "The name of the subcategory."
                       }
                     }
                   }
@@ -2841,10 +3739,10 @@
                 "properties": {
                   "subcategories": {
                     "type": "array",
-                    "description": "List of subcategory IDs to be added to the recipe.",
+                    "description": "List of subcategories to be added to the recipe.",
                     "items": {
-                      "type": "integer",
-                      "description": "The ID of a subcategory to be added."
+                      "type": "string",
+                      "description": "The name of a subcategory to be added."
                     }
                   }
                 }
@@ -2868,17 +3766,8 @@
                       "type": "array",
                       "description": "List of subcategories now associated with the recipe.",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "The unique identifier of the subcategory."
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the subcategory."
-                          }
-                        }
+                        "type": "string",
+                        "description": "The name of the subcategory."
                       }
                     }
                   }
@@ -3364,6 +4253,682 @@
         },
         "tags": [
           "Recipes"
+        ]
+      }
+    },
+    "/chop/api/regions": {
+      "get": {
+        "summary": "Fetch all available regions.",
+        "description": "Fetch a list of all regions. You can filter, sort, and paginate the results using query parameters.\n",
+        "parameters": [
+          {
+            "name": "nation",
+            "in": "query",
+            "description": "Filter regions by nation.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Specify the field to sort by (e.g., \"name\"). Defaults to sorting by region name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "code"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of regions to fetch per page. Defaults to 10, max is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number of results to retrieve. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search for regions by name or other criteria.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of regions, with optional pagination and sorting.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of regions found."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the region."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the region."
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "The unique code for the region."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching regions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Regions"
+        ]
+      }
+    },
+    "/chop/api/regions/{region_id}": {
+      "get": {
+        "summary": "Fetch region by region ID.",
+        "description": "Fetch the details of a specific region by its unique ID.\nIf the provided ID is invalid or the region does not exist, an error message will be returned.\n",
+        "parameters": [
+          {
+            "name": "region_id",
+            "in": "path",
+            "description": "The unique ID of the region.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Region details for the specified region ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the region."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the region."
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The unique code of the region."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid region ID format.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid ID format"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Region not found for the provided ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Region with id: {regionId} not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching region details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Regions"
+        ]
+      }
+    },
+    "/chop/api/regions/{region_name}": {
+      "get": {
+        "summary": "Fetch region by region name.",
+        "description": "Fetch the details of a specific region by its name. The name is case-insensitive and can be partially matched.\nIf no region is found with the provided name, an error message will be returned.\n",
+        "parameters": [
+          {
+            "name": "region_name",
+            "in": "path",
+            "description": "The name of the region to search for.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Region details for the specified region name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the region."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the region."
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The unique code of the region."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Region not found with the given name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Region with name: {region_name} not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching region details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Regions"
+        ]
+      }
+    },
+    "/chop/api/regions/{region_id}/nations": {
+      "get": {
+        "summary": "Fetch nations of a specific region by region id.",
+        "description": "Fetch a list of nations associated with a specific region using the region’s unique ID. \nIf no region is found with the provided ID, an error message will be returned.\n",
+        "parameters": [
+          {
+            "name": "region_id",
+            "in": "path",
+            "description": "The unique ID of the region to fetch nations for.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of nations for the specified region ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the region."
+                    },
+                    "nations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "A list of nation names associated with the region."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid region ID format.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid ID format"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Region not found with the given ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Region with id: {region_id} not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching the nations of the region.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Regions"
+        ]
+      }
+    },
+    "/chop/api/regions/{region_name}/nations": {
+      "get": {
+        "summary": "Fetch nations of a specific region by region name.",
+        "description": "Fetch a list of nations associated with a specific region using the region’s name. \nThe response can be filtered and paginated with query parameters for sorting, limit, and page. \nIf no region is found with the provided name, an error message will be returned.\n",
+        "parameters": [
+          {
+            "name": "region_name",
+            "in": "path",
+            "description": "The name of the region to fetch nations for.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "The field to sort by.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "name"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of results to return per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for paginated results.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of nations for the specified region name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the region."
+                    },
+                    "nations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "A list of nation names associated with the region."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters (e.g., invalid limit, page, or sort).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Region not found with the given name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Region with name: {region_name} not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching the nations of the region.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Regions"
+        ]
+      }
+    },
+    "/chop/api/subcategories": {
+      "get": {
+        "summary": "Fetch all available subcategories.",
+        "description": "Fetch a list of all available subcategories with the option to filter and paginate the results.\nThe response can be sorted and filtered by search term. If no subcategories are found, an empty list will be returned.\n",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "The field to sort subcategories by.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "name"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of results to return per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for paginated results.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "A search term to filter subcategories by name.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "vegan"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of available subcategories, possibly filtered and paginated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalResults": {
+                      "type": "integer",
+                      "description": "The total number of subcategories available."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the subcategory."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the subcategory."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters (e.g., invalid limit, page, or sort).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error while fetching subcategories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Subcategories"
         ]
       }
     }
