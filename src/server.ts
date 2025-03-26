@@ -1,10 +1,15 @@
 import app from './app';
+import http from 'http'; // Import the HTTP module
 
-if (process.env.IS_DEV==="True"){
+// Create and export the server instance
+const server = http.createServer(app);
+
+if (process.env.IS_DEV === "True") {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
-
 }
-export default app;
+
+// Export the app and server to use in tests
+export { app, server };

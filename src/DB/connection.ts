@@ -4,14 +4,14 @@ import dotenv from 'dotenv';
 
 // Load environment variables from .env file
 dotenv.config();
-const {DB_USER1, DB_USER2, DB_PASSWORD, DB_HOST1, DB_HOST2, DB_PORT1, DB_PORT2, DB_NAME} = process.env;
+const {DB_USER1, DB_USER2, DB_PASSWORD, DB_HOST1, DB_HOST2, DB_PORT1, DB_PORT2, DB_NAME, IS_DEV} = process.env;
 // Initialize Sequelize with your PostgreSQL connection string
 const DATABASE_URL = { 
   "Direct":`postgresql://${DB_USER1}:${DB_PASSWORD}@${DB_HOST1}:${DB_PORT1}/${DB_NAME}`,
   "Transaction_Pooler":`postgresql://${DB_USER2}:${DB_PASSWORD}@${DB_HOST2}:${DB_PORT2}/${DB_NAME}`,
   "Session_Pooler":`postgresql://${DB_USER2}:${DB_PASSWORD}@${DB_HOST2}:${DB_PORT1}/${DB_NAME}`
 };
-const urlToUse = "Transaction_Pooler"
+const urlToUse = IS_DEV==="True"? "Session_Pooler" : "Transaction_Pooler";
 const sequelize = new Sequelize(DATABASE_URL[urlToUse], {
   dialect: 'postgres',
   logging: false,  // Optional: Disable SQL query logging
