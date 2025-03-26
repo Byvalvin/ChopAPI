@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import {app,server} from '../../../src/server'; // Import the app instead of a live API URL
+import app,{server} from '../../../src/server'; // Import the app instead of a live API URL
 import sequelize from '../../../src/DB/connection';  // Import your sequelize instance
 
 const request = supertest(app);  // Create a supertest instance for making API calls
@@ -87,3 +87,8 @@ afterAll(async () => {
     await server.close(); // Gracefully close the server
     await sequelize.close(); // Close the Sequelize connection if it's still open
   });
+
+  /*
+  https://jestjs.io/docs/api#testname-fn-timeout
+  https://stackoverflow.com/questions/68811529/how-can-i-increase-the-test-time-out-value-in-jest
+  */

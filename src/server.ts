@@ -2,7 +2,7 @@ import app from './app';
 import http from 'http'; // Import the HTTP module
 
 // Create and export the server instance
-const server = http.createServer(app);
+export const server = http.createServer(app);
 
 if (process.env.IS_DEV === "True") {
   const PORT = process.env.PORT || 3000;
@@ -12,4 +12,4 @@ if (process.env.IS_DEV === "True") {
 }
 
 // Export the app and server to use in tests
-export { app, server };
+export default app;
