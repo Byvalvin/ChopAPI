@@ -107,16 +107,17 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
 
     // Step 3: Fulfill the request and query the database
     try {
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate filter conditions
+        const {whereConditions, includeConditions} = generateRecipeFilterConditions(queryParams); // Generate filter conditions
 
         // Fetch recipes using Sequelize's `include` to join with Ingredients
         const rows = await Recipe.findAll({
             where: whereConditions, // Filtering recipes by conditions
             include: [
-                ...includeConditions,  // Include any other conditions you might need
+                ...includeConditions,
                 {
                     model: Ingredient,
-                    through: { attributes: ['quantity','unit'] },
+                    attributes: [],
+                    through: { attributes: [] },
                     where: { name: { [Op.iLike]: `%${normalizedSearchTerm}%` } }, // Join with ingredients based on name
                     required: true, // Ensures we only get recipes that include this ingredient
                 },
@@ -135,13 +136,10 @@ export const getRecipeThatUseIngredientByName = async (req: Request, res: Respon
         }
 
         // Step 4: Fetch detailed recipe data
-        const detailedRecipes = await Promise.all(
-            rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
-        );
 
         res.status(200).json({
-            totalResults: detailedRecipes.length,
-            results: detailedRecipes
+            totalResults: rows.length,
+            results: rows
         });
     } catch (error) {
         console.error(error);
@@ -187,7 +185,8 @@ export const getRecipesThatUseIngredientById = async (req:Request, res:Response,
                 ...includeConditions,  // Include any other conditions you might need
                 {
                     model: Ingredient,
-                    through: { attributes: ['quantity','unit'] },
+                    attributes: [],
+                    through: { attributes: [] },
                     where: { id: ingredientId }, // Join with ingredients based on name
                     required: true, // Ensures we only get recipes that include this ingredient
                 },
@@ -206,13 +205,10 @@ export const getRecipesThatUseIngredientById = async (req:Request, res:Response,
         }
 
         // Step 4: Fetch detailed recipe data
-        const detailedRecipes = await Promise.all(
-            rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
-        );
 
         res.status(200).json({
-            totalResults: detailedRecipes.length,
-            results: detailedRecipes
+            totalResults: rows.length,
+            results: rows
         });
     } catch (error) {
         console.error(error);

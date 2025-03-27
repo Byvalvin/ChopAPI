@@ -2,7 +2,7 @@ import { NextFunction, Request,Response  } from 'express';
 import { Op, Includeable, Transaction } from 'sequelize';
 
 import { normalizeString, validateQueryParams } from '../utils';
-import { Image } from '../interface';
+import { Recipe as RecipeI, Image } from '../interface';
 
 import Recipe from '../models/Recipe';  // Import the Recipe model
 import Ingredient from '../models/Ingredient';
@@ -20,6 +20,7 @@ import {
     getRecipeDetails, generateRecipeFilterConditions,
     handleCategories, handleIngredients, handleRecipeAliases, handleRecipeImages, handleRecipeInstructions, handleRegionAndNation, handleSubcategories,
     validateRecipeData,
+    getRecipeBase,
 } from './controllerHelpers/recipeControllerHelpers'
 
 import RecipeCache from '../caching/RecipeCaching';
@@ -94,11 +95,10 @@ export const getAllRecipes = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate the where and include conditions using the helper function
-
+        const {whereConditions, includeConditions} = generateRecipeFilterConditions(queryParams); // Generate the where and include conditions using the helper function
         const rows = await Recipe.findAll({ // Fetching recipe IDs based on dynamic conditions
             where: whereConditions, // Apply where conditions
-            include: includeConditions, // Apply include conditions (associations)
+            include: includeConditions,
             limit: Number(limit),
             offset: (page - 1) * limit,
             order,  // Pass the order here
@@ -112,18 +112,14 @@ export const getAllRecipes = async (req: Request, res: Response) => {
             return;
         }
 
-        // Now use `getRecipeDetails` to fetch details for each recipe
-        const detailedRecipes = [];
-        // Loop through each recipe to fetch detailed data
-        for (const recipe of rows) {
-            const detailedRecipe = await getRecipeDetails(recipe.id);  // Get full details using the existing function
-            if (detailedRecipe) { detailedRecipes.push(detailedRecipe); }
-        }
+        // for(const row of rows){ // setCache
+        //     await RecipeCache.setCache(row.id, row);
+        // }
 
         // Step 4: Return paginated results with detailed recipes
         res.status(200).json({
-            totalResults: detailedRecipes.length,
-            results: detailedRecipes,
+            totalResults: rows.length,
+            results: rows,
         });
     } catch (error) {
         console.error(error);
@@ -210,7 +206,7 @@ export const getRecipeById = async (req: Request, res: Response, next: NextFunct
     // Step 3: Fulfil Request
     try {
         // Use getRecipeDetails to fetch the recipe details by ID
-        const recipe = await getRecipeDetails(recipeId);
+        const recipe = await getRecipeBase(recipeId);
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
@@ -252,7 +248,6 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
         // Find the recipe in the database
         const recipe = await Recipe.findOne({
             where: { id: recipeId },
-            include: stdInclude,
             transaction, // Pass transaction here to ensure the query is part of the transaction
         });
 
@@ -300,7 +295,7 @@ export const replaceRecipeById = async (req: Request, res: Response) => {
         await RegionCache.invalidateCache(regionId);
 
         // Return the updated recipe data
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(recipe);
     } catch (error) {
         if (transaction) {
             await transaction.rollback(); // If anything goes wrong, rollback the transaction
@@ -331,7 +326,6 @@ export const updateRecipeById = async (req: Request, res: Response) => {
     try {
         const recipe = await Recipe.findOne({ // Find the recipe in the database
             where: { id: recipeId },
-            include: stdInclude,
             transaction, // Pass transaction to ensure the query is part of the transaction
         });
         if (!recipe) {
@@ -418,12 +412,12 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
 
     // Step 3: Fulfil Request
     try {
-        const { whereConditions, includeConditions } = generateRecipeFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
+        const {whereConditions, includeConditions} = generateRecipeFilterConditions(queryParams); // Generate the where conditions using the helper function (filters based on category, subcategory, etc.)
         whereConditions.name = { [Op.iLike]: `%${normalizedSearchTerm}%` }; // Apply name filter to the whereConditions, Match the recipe name
 
         const rows  = await Recipe.findAll({ // Sequelize query to fetch the filtered and sorted recipes with the required associations
             where: whereConditions, // Apply where conditions for filtering
-            include: includeConditions.length ? includeConditions : stdInclude, // Apply include conditions for associations
+            include: includeConditions,
             limit,
             offset: (page - 1) * limit,
             order: order, // Apply ordering
@@ -437,14 +431,10 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
             return;
         }
 
-        const detailedRecipes = await Promise.all( // Fetch detailed recipe data using the getRecipeDetails function
-            rows.map(async (recipe) => await getRecipeDetails(recipe.id)) // Fetch detailed info for each recipe
-        );
-
         // Step 4: Return the paginated results with detailed recipe data
         res.status(200).json({
-            totalResults: detailedRecipes.length,
-            results: detailedRecipes
+            totalResults: rows.length,
+            results: rows
         });
     } catch (error) {
         console.error(error);
@@ -465,7 +455,7 @@ export const getRecipeNamesById = async (req: Request, res: Response) => {
         const include : Includeable[] = [
             { model: RecipeAlias, attributes: ['alias'] }
         ]
-        const recipe = await getRecipeDetails(recipeId, include);
+        const recipe = await getRecipeDetails(recipeId, include) as RecipeI;
         if (!recipe) {
             res.status(404).json({ message: `Recipe with id: ${recipeId} not found` });
             return;
@@ -522,7 +512,7 @@ export const replaceAliasForRecipeById = async (req: Request, res: Response) => 
         await RecipeCache.invalidateCache(recipeId);
 
         // Return the updated recipe
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(await getRecipeBase(recipeId));
     } catch (error) {
         // If an error occurs, rollback the transaction
         if (transaction) await transaction.rollback();
@@ -562,7 +552,7 @@ export const addAliasToRecipeById = async (req: Request, res: Response) => {
         await RecipeCache.invalidateCache(recipeId);
 
         // Return the updated recipe along with new aliases
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(await getRecipeBase(recipeId));
     } catch (error) {
         // If an error occurs, rollback the transaction
         if (transaction) await transaction.rollback();
@@ -649,7 +639,7 @@ export const replaceRecipeIngredientsById = async (req: Request, res: Response) 
         console.error(error);
         res.status(500).json({ message: 'Error replacing ingredients for recipe', error: `${(error as Error).name}: ${(error as Error).message}` });
     }
-}
+};
 
 // Add new Ingredients for a specific Recipe
 export const addRecipeIngredientsById = async (req: Request, res: Response) => {
@@ -811,7 +801,7 @@ export const replaceRecipeInstructionsById = async (req: Request, res: Response)
         await RecipeCache.invalidateCache(recipeId);
 
         // Step 4: Return the updated recipe
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(await getRecipeBase(recipeId));
     } catch (error) {
         // Rollback the transaction if an error occurs
         if (transaction) await transaction.rollback();
@@ -885,7 +875,7 @@ export const addRecipeCategoriesById = async (req: Request, res: Response) => {
         await RecipeCache.invalidateCache(recipeId);
 
         // Step 4: Return the updated recipe
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(await getRecipeBase(recipeId));
     } catch (error) {
         // Rollback the transaction if an error occurs
         if (transaction) await transaction.rollback();
@@ -1015,7 +1005,7 @@ export const addRecipeSubcategoriesById = async (req: Request, res: Response) =>
         await RecipeCache.invalidateCache(recipeId);  
 
         // Step 4: Return the updated recipe
-        res.status(201).json(await getRecipeDetails(recipeId));
+        res.status(201).json(await getRecipeBase(recipeId));
     } catch (error) {
         // Rollback the transaction if an error occurs
         if (transaction) await transaction.rollback();
@@ -1158,7 +1148,7 @@ export const addRecipeImageById = async (req: Request, res: Response) => {
         await RecipeCache.invalidateCache(recipeId);
 
         // Step 4: Return the updated recipe
-        res.status(200).json(await getRecipeDetails(recipeId));
+        res.status(200).json(await getRecipeBase(recipeId));
     } catch (error) {
         // Rollback the transaction if an error occurs
         if (transaction) await transaction.rollback();
