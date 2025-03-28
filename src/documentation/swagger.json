@@ -15,13 +15,14 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
-      "description": "Localhosting Server"
-    },
-    {
       "url": "https://chop-api-nine.vercel.app",
       "description": "API Server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Localhosting Server"
     }
+
   ],
   "paths": {
     "/chop/api/categories": {
