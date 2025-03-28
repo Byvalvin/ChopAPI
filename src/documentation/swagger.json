@@ -15,6 +15,10 @@
   },
   "servers": [
     {
+      "url": "http://localhost:3000",
+      "description": "Localhosting Server"
+    },
+    {
       "url": "https://chop-api-nine.vercel.app",
       "description": "API Server"
     }
@@ -1061,54 +1065,13 @@
                             "type": "string",
                             "description": "A short description of the recipe."
                           },
-                          "nation": {
-                            "type": "string",
-                            "description": "The nation the recipe is associated with."
+                          "nationId": {
+                            "type": "integer",
+                            "description": "The nation id the recipe is associated with."
                           },
-                          "region": {
-                            "type": "string",
-                            "description": "The region the recipe is associated with."
-                          },
-                          "categories": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "List of categories for the recipe (e.g., \"Main\", \"Vegetarian\")."
-                          },
-                          "subcategories": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "List of subcategories for the recipe (e.g., \"Quick\", \"Vegetarian\")."
-                          },
-                          "aliases": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "List of alternative names for the recipe."
-                          },
-                          "images": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "url": {
-                                  "type": "string",
-                                  "description": "The URL to the image."
-                                },
-                                "type": {
-                                  "type": "string",
-                                  "description": "The type of image (e.g., \"thumbnail\", \"full-size\")."
-                                },
-                                "caption": {
-                                  "type": "string",
-                                  "description": "A short caption describing the image."
-                                }
-                              }
-                            }
+                          "regionId": {
+                            "type": "integer",
+                            "description": "The region id the recipe is associated with."
                           },
                           "time": {
                             "type": "integer",
@@ -1117,26 +1080,6 @@
                           "cost": {
                             "type": "integer",
                             "description": "The cost of the recipe."
-                          },
-                          "ingredients": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "name": {
-                                  "type": "string",
-                                  "description": "The name of the ingredient."
-                                },
-                                "quantity": {
-                                  "type": "integer",
-                                  "description": "The quantity of the ingredient."
-                                },
-                                "unit": {
-                                  "type": "string",
-                                  "description": "The unit of measurement (e.g., \"grams\", \"pieces\")."
-                                }
-                              }
-                            }
                           }
                         }
                       }
@@ -1396,50 +1339,23 @@
                     },
                     "description": {
                       "type": "string",
-                      "description": "A brief description of the recipe."
+                      "description": "A short description of the recipe."
                     },
-                    "nation": {
-                      "type": "string",
-                      "description": "The nation the recipe is associated with."
+                    "nationId": {
+                      "type": "integer",
+                      "description": "The nation id the recipe is associated with."
                     },
-                    "region": {
-                      "type": "string",
-                      "description": "The region the recipe is associated with."
-                    },
-                    "ingredients": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the ingredient."
-                          },
-                          "quantity": {
-                            "type": "integer",
-                            "description": "The quantity of the ingredient."
-                          },
-                          "unit": {
-                            "type": "string",
-                            "description": "The unit of measurement for the ingredient (e.g., grams, pieces)."
-                          }
-                        }
-                      }
-                    },
-                    "instructions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "description": "Step-by-step instructions to prepare the recipe."
-                      }
+                    "regionId": {
+                      "type": "integer",
+                      "description": "The region id the recipe is associated with."
                     },
                     "time": {
                       "type": "integer",
-                      "description": "The preparation time in minutes."
+                      "description": "Preparation time in minutes."
                     },
                     "cost": {
                       "type": "integer",
-                      "description": "The cost of the recipe in your currency."
+                      "description": "The cost of the recipe."
                     }
                   }
                 }
@@ -1640,50 +1556,23 @@
                     },
                     "description": {
                       "type": "string",
-                      "description": "A brief description of the recipe."
+                      "description": "A short description of the recipe."
                     },
-                    "nation": {
-                      "type": "string",
-                      "description": "The nation the recipe is associated with."
+                    "nationId": {
+                      "type": "integer",
+                      "description": "The nation id the recipe is associated with."
                     },
-                    "region": {
-                      "type": "string",
-                      "description": "The region the recipe is associated with."
-                    },
-                    "ingredients": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the ingredient."
-                          },
-                          "quantity": {
-                            "type": "integer",
-                            "description": "The quantity of the ingredient."
-                          },
-                          "unit": {
-                            "type": "string",
-                            "description": "The unit of measurement for the ingredient (e.g., grams, pieces)."
-                          }
-                        }
-                      }
-                    },
-                    "instructions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "description": "Step-by-step instructions to prepare the recipe."
-                      }
+                    "regionId": {
+                      "type": "integer",
+                      "description": "The region id the recipe is associated with."
                     },
                     "time": {
                       "type": "integer",
-                      "description": "The preparation time in minutes."
+                      "description": "Preparation time in minutes."
                     },
                     "cost": {
                       "type": "integer",
-                      "description": "The cost of the recipe in your currency."
+                      "description": "The cost of the recipe."
                     }
                   }
                 }
@@ -1884,50 +1773,23 @@
                     },
                     "description": {
                       "type": "string",
-                      "description": "A brief description of the recipe."
+                      "description": "A short description of the recipe."
                     },
-                    "nation": {
-                      "type": "string",
-                      "description": "The nation the recipe is associated with."
+                    "nationId": {
+                      "type": "integer",
+                      "description": "The nation id the recipe is associated with."
                     },
-                    "region": {
-                      "type": "string",
-                      "description": "The region the recipe is associated with."
-                    },
-                    "ingredients": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the ingredient."
-                          },
-                          "quantity": {
-                            "type": "integer",
-                            "description": "The quantity of the ingredient."
-                          },
-                          "unit": {
-                            "type": "string",
-                            "description": "The unit of measurement for the ingredient (e.g., grams, pieces)."
-                          }
-                        }
-                      }
-                    },
-                    "instructions": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "description": "Step-by-step instructions to prepare the recipe."
-                      }
+                    "regionId": {
+                      "type": "integer",
+                      "description": "The region id the recipe is associated with."
                     },
                     "time": {
                       "type": "integer",
-                      "description": "The preparation time in minutes."
+                      "description": "Preparation time in minutes."
                     },
                     "cost": {
                       "type": "integer",
-                      "description": "The cost of the recipe in your currency."
+                      "description": "The cost of the recipe."
                     }
                   }
                 }
@@ -2122,71 +1984,23 @@
                           },
                           "description": {
                             "type": "string",
-                            "description": "A brief description of the recipe."
+                            "description": "A short description of the recipe."
                           },
-                          "nation": {
-                            "type": "string",
-                            "description": "The nation the recipe is associated with."
+                          "nationId": {
+                            "type": "integer",
+                            "description": "The nation id the recipe is associated with."
                           },
-                          "region": {
-                            "type": "string",
-                            "description": "The region the recipe is associated with."
+                          "regionId": {
+                            "type": "integer",
+                            "description": "The region id the recipe is associated with."
                           },
                           "time": {
                             "type": "integer",
-                            "description": "The preparation time in minutes."
+                            "description": "Preparation time in minutes."
                           },
                           "cost": {
                             "type": "integer",
-                            "description": "The cost of the recipe in your currency."
-                          },
-                          "categories": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "description": "Categories the recipe belongs to."
-                            }
-                          },
-                          "subcategories": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "description": "Subcategories the recipe belongs to."
-                            }
-                          },
-                          "ingredients": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "description": "A list of ingredients required for the recipe."
-                            }
-                          },
-                          "instructions": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "description": "Step-by-step instructions for preparing the recipe."
-                            }
-                          },
-                          "images": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "url": {
-                                  "type": "string",
-                                  "description": "The URL of the image."
-                                },
-                                "type": {
-                                  "type": "string",
-                                  "description": "The type of image (e.g., thumbnail, full-size)."
-                                },
-                                "caption": {
-                                  "type": "string",
-                                  "description": "A caption describing the image."
-                                }
-                              }
-                            }
+                            "description": "The cost of the recipe."
                           }
                         }
                       }
@@ -4339,10 +4153,6 @@
                           "name": {
                             "type": "string",
                             "description": "The name of the region."
-                          },
-                          "code": {
-                            "type": "string",
-                            "description": "The unique code for the region."
                           }
                         }
                       }
@@ -4424,10 +4234,6 @@
                     "name": {
                       "type": "string",
                       "description": "The name of the region."
-                    },
-                    "code": {
-                      "type": "string",
-                      "description": "The unique code of the region."
                     }
                   }
                 }
@@ -4520,10 +4326,6 @@
                     "name": {
                       "type": "string",
                       "description": "The name of the region."
-                    },
-                    "code": {
-                      "type": "string",
-                      "description": "The unique code of the region."
                     }
                   }
                 }

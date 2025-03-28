@@ -4,6 +4,8 @@ import { normalizeString, validateQueryParams } from "../utils";
 import { generateRegionFilterConditions, getRegionDetails, stdInclude, validSortFields } from "./controllerHelpers/regionControllerHelpers";
 import Region from "../models/Region";
 import { Op } from "sequelize";
+import Nation from "../models/Nation";
+import {Region as RegionI} from '../interface';
 
 // Main endpoint to get all recipes
 export const getAllRegions = async (req: Request, res: Response) => {
@@ -50,18 +52,10 @@ export const getAllRegions = async (req: Request, res: Response) => {
             return;
         }
 
-        // Now use `getRecipeDetails` to fetch details for each recipe
-        const detailedRegions = [];
-        // Loop through each recipe to fetch detailed data
-        for (const recipe of rows) {
-            const detailedRegion = await getRegionDetails(recipe.id);  // Get full details using the existing function
-            if (detailedRegion) { detailedRegions.push(detailedRegion); }
-        }
-
         // Step 4: Return paginated results with detailed recipes
         res.status(200).json({
-            totalResults: detailedRegions.length,
-            results: detailedRegions,
+            totalResults: rows.length,
+            results: rows,
         });
     } catch (error) {
         console.error(error);
@@ -142,7 +136,6 @@ export const getRegionByRegionName = async (req: Request, res: Response) => {
 
         const region  = await Region.findOne({ // Sequelize query to fetch the filtered and sorted regions with the required associations
             where: whereConditions, // Apply where conditions for filtering
-            include: includeConditions.length ? includeConditions : stdInclude, // Apply include conditions for associations
             limit,
             offset: (page - 1) * limit,
             order: order, // Apply ordering
@@ -151,10 +144,9 @@ export const getRegionByRegionName = async (req: Request, res: Response) => {
             res.status(404).json({ message: `Region with name: ${region_name} not found` });
             return;
         }
-        
 
         // Step 4: Return the result
-        res.status(200).json(await getRegionDetails(region.id));
+        res.status(200).json(region);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: `Error fetching region with name ${region_name} from the database`, error:`${(error as Error).name}: ${(error as Error).message}` });
@@ -178,7 +170,14 @@ export const getRegionNationsByRegionId = async(req:Request, res:Response, next:
     // Step 3: Fulfil Request
     try {
         // Use getRecipeDetails to fetch the region details by ID
-        const region = await getRegionDetails(regionId);
+        const include =  [
+            {
+                model: Nation,
+                through: { attributes: [] }, // Exclude any attributes from the join table
+                attributes: ['id','name'],  // Only fetch the nation `id` and `name`
+            }
+        ];
+        const region = await getRegionDetails(regionId, include) as RegionI;
         if (!region) {
             res.status(404).json({ message: `Region with id: ${regionId} not found` });
             return;
@@ -234,12 +233,19 @@ export const getRegionNationsByRegionName = async(req:Request, res:Response)=>{
 
         const region  = await Region.findOne({ // Sequelize query to fetch the filtered and sorted regions with the required associations
             where: whereConditions, // Apply where conditions for filtering
-            include: includeConditions.length ? includeConditions : stdInclude, // Apply include conditions for associations
             limit,
             offset: (page - 1) * limit,
             order: order, // Apply ordering
         });
-        const detailedRegion = region ? await getRegionDetails(region.id) : null;
+
+        const include =  [
+            {
+                model: Nation,
+                through: { attributes: [] }, // Exclude any attributes from the join table
+                attributes: ['id','name'],  // Only fetch the nation `id` and `name`
+            }
+        ];
+        const detailedRegion = region ? await getRegionDetails(region.id, include) as RegionI: null;
         if (!region || !detailedRegion) {
             res.status(404).json({ message: `Region with name: ${region_name} not found` });
             return;

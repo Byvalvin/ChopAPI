@@ -112,9 +112,10 @@ export const getAllRecipes = async (req: Request, res: Response) => {
             return;
         }
 
-        // for(const row of rows){ // setCache
-        //     await RecipeCache.setCache(row.id, row);
-        // }
+        // update cache for all recipes involved
+        for(const row of rows){ // setCache
+            await RecipeCache.setCache(row.id, row);
+        }
 
         // Step 4: Return paginated results with detailed recipes
         res.status(200).json({
@@ -431,6 +432,11 @@ export const getAllRecipeWithName = async (req: Request, res: Response) => {
             return;
         }
 
+        // update cache for all recipes involved
+        for(const row of rows){ // setCache
+            await RecipeCache.setCache(row.id, row);
+        }
+
         // Step 4: Return the paginated results with detailed recipe data
         res.status(200).json({
             totalResults: rows.length,
@@ -462,7 +468,6 @@ export const getRecipeNamesById = async (req: Request, res: Response) => {
         }
 
         const names = [recipe.name, ...(recipe.aliases || [])]; // Collect the recipe name and its aliases (if any)
-
         // Step 4: Return the recipe name(s) (OR FAILURE) message
         res.status(200).json({
             id: recipeId,
@@ -492,7 +497,6 @@ export const replaceAliasForRecipeById = async (req: Request, res: Response) => 
         res.status(400).json(validationResult); // Return error if validation fails
         return;
     }
-
 
     // Step 3: Fulfill request
     const transaction = await sequelize.transaction(); // Start a transaction

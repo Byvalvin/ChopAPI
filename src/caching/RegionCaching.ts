@@ -1,5 +1,5 @@
 import { RedisCaching } from './RedisCaching';
-import { Region } from '../interface';
+import Region from '../models/Region';
 
 // Region-specific class extending RedisCaching
 class RegionCaching extends RedisCaching<Region> {

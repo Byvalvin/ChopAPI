@@ -12,7 +12,8 @@ import path from 'path';
 const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
-const swaggerToUse = process.env.IS_DEV==="True" ? 'swaggerLocal.json':'swagger.json'
+//const swaggerToUse = process.env.IS_DEV==="True" ? 'swaggerLocal.json':'swagger.json'
+const swaggerToUse = 'swagger.json';
 
 
 // Check if sequelize is already initialized

@@ -15,8 +15,25 @@ export const stdInclude: Includeable[] = [
 ];
 
 
+export const reduceRegion = (region : any) =>{
+    // Type assertion to handle associations, we'll make sure the associations are safely accessed
+    const typedRegion = region as Region & {
+      Nations: Nation[]; 
+    };
 
-export const getRegionDetails = async (regionId: number) => {
+    // Prepare the region object in the format you want
+    const detailedRegion = {
+      id: region.id,
+      name: region.name,
+      nations: typedRegion.Nations?.map((nation) => ({
+          id: nation.id,
+          name: nation.name,
+      })),
+    };
+    return detailedRegion;
+};
+
+export const getRegionDetails = async (regionId: number, customInclude:Includeable[]=[]) => {
     try {
       // First, check if the region is already cached
       const cachedRegion = await RegionCache.getCache(regionId);
@@ -27,32 +44,14 @@ export const getRegionDetails = async (regionId: number) => {
       // Fetch the region with its nations
       const region = await Region.findOne({
         where: { id: regionId },
-        include: {
-          model: Nation,
-          through: { attributes: [] }, // Exclude any attributes from the join table
-          attributes: ['id', 'name'],  // Only fetch the nation `id` and `name`
-        },
+        include:customInclude,
       });
   
       if (!region) return null;  // Return null if no region is found
-
-      // Type assertion to handle associations, we'll make sure the associations are safely accessed
-      const typedRegion = region as Region & {
-          Nations: Nation[]; 
-      };
-
-      // Prepare the region object in the format you want
-      const detailedRegion = {
-        id: region.id,
-        name: region.name,
-        nations: typedRegion.Nations.map((nation) => ({
-            id: nation.id,
-            name: nation.name,
-        })),
-      };
+      const detailedRegion = reduceRegion(region);
 
       // Cache the region details after fetching from DB
-      await RegionCache.setCache(regionId, detailedRegion);
+      await RegionCache.setCache(regionId, region);
 
       return detailedRegion;
     } catch (error) {
