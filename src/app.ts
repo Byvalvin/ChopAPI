@@ -46,7 +46,7 @@ if (sequelize) {
 app.use(express.json()); 
 
 // Middleware for rate limiting; Apply this rate limit to all API routes
-app.use('/api/', limiter); 
+app.use(`${baseURL}/`, limiter); 
 
 // Middleware for swagger
 // app.use(openapiDocURL, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
