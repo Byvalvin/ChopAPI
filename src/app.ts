@@ -48,7 +48,7 @@ app.use(express.json());
 // Middleware for rate limiting; Apply this rate limit to all API routes
 app.use(`${baseURL}/`, limiter); 
 
-// Middleware for swagger
+// Middleware(s) for swagger -> to manually Serve the static Swagger JSON file
 // app.use(openapiDocURL, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use(  
   openapiDocURL,
@@ -59,8 +59,6 @@ app.use(
     customCssUrl: swaggerUICss[1], //const swaggerUICss = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
   })
 );
-
-// Middleware to manually Serve the static Swagger JSON file
 app.use('/swagger.json', (req, res) => res.sendFile(path.join(__dirname, `documentation/${swaggerToUse}`)));
 
 // Middleware for logging; Use the custom logging middleware
@@ -72,9 +70,10 @@ app.use(logger);
 
 // Redirection logic for the root route
 app.get('/', (req, res) => res.redirect(openapiDocURL));
-app.get(`${baseURL}`, (req, res) => {
-  res.send("Welcome to the ChopAPI!");
-});
+app.get(`${baseURL}`, (req, res) => res.redirect(openapiDocURL));
+// app.get(`${baseURL}`, (req, res) => {
+//   res.send("Welcome to the ChopAPI!");
+// });
 
 // ROUTES
 import recipeRoutes from './routes/recipe'; 
