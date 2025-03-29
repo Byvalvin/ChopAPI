@@ -26,7 +26,7 @@ if (sequelize) {
    * Use { alter: true } or migrations in production to avoid losing data and to allow for schema updates without dropping tables.
    */
   setupAssociations();
-  sequelize.sync({ force: true }) 
+  sequelize.sync({ alter: true }) 
     .then(() => {
       console.log("Database synced!");
       //setupAssociations();
