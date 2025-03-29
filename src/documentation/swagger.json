@@ -2272,7 +2272,7 @@
         ]
       },
       "put": {
-        "summary": "Add an additional alias for a specific recipe by its ID.",
+        "summary": "Add additional aliases for a specific recipe by its ID.",
         "description": "This endpoint allows users to add one or more new aliases (alternative names) to an existing recipe identified by its unique ID.\nThe new aliases will be added to the recipe's current list of aliases.\n",
         "parameters": [
           {
