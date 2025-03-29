@@ -11,7 +11,8 @@ const DATABASE_URL = {
   "Transaction_Pooler":`postgresql://${DB_USER2}:${DB_PASSWORD}@${DB_HOST2}:${DB_PORT2}/${DB_NAME}`,
   "Session_Pooler":`postgresql://${DB_USER2}:${DB_PASSWORD}@${DB_HOST2}:${DB_PORT1}/${DB_NAME}`
 };
-const urlToUse = IS_DEV==="True"? "Session_Pooler" : "Transaction_Pooler";
+// const urlToUse = IS_DEV==="True"? "Session_Pooler" : "Transaction_Pooler";
+const urlToUse = "Transaction_Pooler";
 const sequelize = new Sequelize(DATABASE_URL[urlToUse], {
   dialect: 'postgres',
   logging: false,  // Optional: Disable SQL query logging
@@ -22,6 +23,12 @@ const sequelize = new Sequelize(DATABASE_URL[urlToUse], {
     },
   },
   dialectModule: pg, // add this !
+  pool: {
+    max: 10,  // Maximum number of connections
+    min: 0,   // Minimum number of connections
+    idle: 10000,  // Time in ms before a connection is released
+    acquire: 30000,  // Time in ms to acquire a connection before timing out
+  },
 });
 
 // Test connection

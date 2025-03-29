@@ -57,7 +57,7 @@ export const deleteRecipeById = async (req: Request, res: Response) => {
 
         await t.commit();  // Commit the transaction
         await RecipeCache.invalidateCache(recipeId);
-        res.status(200).json({ message: 'Recipe deleted successfully' });
+        res.status(204).json({ message: 'Recipe deleted successfully' });
     } catch (error) {
         await t.rollback();  // Rollback the transaction in case of error
         console.error(error);
