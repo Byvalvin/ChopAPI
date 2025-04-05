@@ -8,13 +8,13 @@ import swaggerSpec, { swaggerUICss } from './documentation/openapiDoc';
 import {limiter} from './middleware/rateLimiting';
 
 import path from 'path';
+import cors from 'cors';
 
 const app = express();
 const baseURL = '/chop/api';
 const openapiDocURL = `${baseURL}/docs`;
 //const swaggerToUse = process.env.IS_DEV==="True" ? 'swaggerLocal.json':'swagger.json'
 const swaggerToUse = 'swagger.json';
-
 
 // Check if sequelize is already initialized
 if (sequelize) {
@@ -38,6 +38,24 @@ if (sequelize) {
   console.error('Sequelize instance is not initialized(app).');
 }
 
+// CORS
+const allowedOrigins = [
+  'http://localhost:3000',  // Local development
+  'https://your-production-url.com',  // Production frontend
+  'https://another-frontend-url.com'  // Any additional frontends
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      // Allow the request if the origin is in the allowedOrigins list
+      callback(null, true);
+    } else {
+      // Reject the request if the origin is not allowed
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
 
 // Add your middleware here
 // MIDDLEWARE
@@ -47,6 +65,9 @@ app.use(express.json());
 
 // Middleware for rate limiting; Apply this rate limit to all API routes
 app.use(`${baseURL}/`, limiter); 
+
+// Middleware for allowed sites to call api
+app.use(cors(corsOptions)); // Use the updated CORS options
 
 // Middleware(s) for swagger -> to manually Serve the static Swagger JSON file
 // app.use(openapiDocURL, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
