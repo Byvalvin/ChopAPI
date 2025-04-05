@@ -46,15 +46,17 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err:Error | null, allow:boolean) => void) => {
     if (!origin || allowedOrigins.includes(origin)) {
       // Allow the request if the origin is in the allowedOrigins list
       callback(null, true);
     } else {
       // Reject the request if the origin is not allowed
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'), false);
     }
-  }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Specify allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'],  // Specify allowed headers
 };
 
 // Add your middleware here
