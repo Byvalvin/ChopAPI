@@ -42,6 +42,7 @@ if (sequelize) {
 const allowedOrigins = [
   'http://localhost:3000',  // Local development
   'http://localhost:5000',  // Local development
+  'https://chop-api-nine.vercel.app/chop/api/docs',
   'https://your-production-url.com',  // Production frontend
   'https://another-frontend-url.com'  // Any additional frontends
 ];
