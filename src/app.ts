@@ -57,6 +57,7 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Specify allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'],  // Specify allowed headers
+  credentials: true,  // Allow credentials (cookies, authorization headers, etc.)
 };
 
 // Add your middleware here
