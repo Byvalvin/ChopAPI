@@ -40,7 +40,7 @@ if (sequelize) {
 
 // CORS
 const allowedOrigins = [
-  'http://localhost:3000',  // Local development
+  'http://localhost:5000',  // Local development
   'https://your-production-url.com',  // Production frontend
   'https://another-frontend-url.com'  // Any additional frontends
 ];
