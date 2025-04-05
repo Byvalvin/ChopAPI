@@ -66,6 +66,8 @@ const corsOptions = {
 app.use(express.json()); 
 
 // Middleware for rate limiting; Apply this rate limit to all API routes
+// Enable trust proxy
+app.set('trust proxy', 1); // This tells Express to trust the X-Forwarded-For header
 app.use(`${baseURL}/`, limiter); 
 
 // Middleware for allowed sites to call api
