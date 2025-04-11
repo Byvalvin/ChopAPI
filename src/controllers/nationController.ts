@@ -33,9 +33,9 @@ export const getAllNations = async (req: Request, res: Response) => {
     // Step 3: Fulfil Request
     try { // Sequelize findAll query with dynamic conditions and sorting
         let whereConditions: any = {};  // Initialize where conditions
-        // If there's a search query, filter regions by name
+        // If there's a search query, filter nations by name
         if (search) {
-            whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match regions by name (case-insensitive)
+            whereConditions.name = { [Op.iLike]: `%${search}%` };  // Match nations by name (case-insensitive)
         }
         const rows = await Nation.findAll({ // Fetching nations based on dynamic conditions
             where:whereConditions,
@@ -64,5 +64,37 @@ export const getAllNations = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching nations from the database', error:`${(error as Error).name}: ${(error as Error).message}` });
+    }
+};
+
+
+// Get one nation
+export const getNationById = async(req: Request, res: Response) =>{
+    const { nation_id } = req.params; // Step 1: get user input. Extract the recipe ID from the request parameters
+
+    const nationId = parseInt(nation_id, 10);  // Step 2: validate and parse user input, return if bad input. Convert ID to an integer
+    if (isNaN(nationId)) {  
+        res.status(400).json({ message: "Invalid ID format" });
+        return;
+    }
+
+    // Step 3: Fulfil Request
+    try {
+        // Use getRecipeDetails to fetch the nation details by ID
+        const nation = await Nation.findOne({
+            where: { id: nationId},
+        });
+
+        if (!nation) {
+            res.status(404).json({ message: `Nation with id: ${nationId} not found` });
+            return;
+        }
+
+        // Step 4: Return the recipe details with status 200
+        res.status(200).json(nation);
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching nation details', error:`${(error as Error).name}: ${(error as Error).message}` });
     }
 };
