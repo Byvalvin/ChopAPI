@@ -36,5 +36,5 @@ testConnection();
 //   password: process.env.UPSTASH_REDIS_REST_TOKEN, // From Upstash dashboard
 // });
 
-const redis = client;
+const redis: Redis | null = client;
 export default redis;
