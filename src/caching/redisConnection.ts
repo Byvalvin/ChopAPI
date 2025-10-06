@@ -29,7 +29,7 @@ const initializeRedis = async () => {
 };
 
 // Immediately initialize on import
-initializeRedis();
+await initializeRedis();
 
 // import Redis from 'ioredis';
 // const redis = new Redis({
