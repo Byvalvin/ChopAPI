@@ -31,10 +31,6 @@ const initializeRedis = async () => {
 // Immediately initialize on import
 initializeRedis();
 
-export default redis;
-
-
-
 // import Redis from 'ioredis';
 // const redis = new Redis({
 //   host: process.env.UPSTASH_REDIS_REST_URL, // From Upstash dashboard
