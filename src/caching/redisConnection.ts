@@ -1,33 +1,38 @@
 // redisClient.ts
 import dotenv from 'dotenv';
+
+
+// Load environment variables from .env file
 dotenv.config();
 
-import { Redis } from '@upstash/redis';
+// Use Singleton Pattern
 
-let client: Redis | null = null;
-client = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+// Replace these with your Upstash Redis connection credentials. tHIS IS THE REDIS CLIENT
+import { Redis } from '@upstash/redis'
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,  // From Upstash dashboard
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,  // From Upstash dashboard
 });
 
-const testConnection = async ()=>{
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn('[REDIS] Missing Upstash environment variables. Redis disabled.');
-    client = null
-    return;
-  }
+// Test the Redis connection by performing a simple ping (if successful, Redis is working)
+const testConnection = async () => {
   try {
-    await client.ping(); // test connection
-    console.log('[REDIS] Connected to Upstash successfully.');
+    // Pinging Redis server to check connectivity
+    await redis.ping();
+    console.log("Redis connection successful!");
   } catch (err) {
-    console.error('[REDIS ERROR] Connection failed. Caching disabled.', err);
-    client = null;
+    console.error("Failed to connect to Redis:", err);
   }
-}
-
+};
 
 // Call the test connection function to log success/failure
 testConnection();
+// await redis.set('foo', 'bar');
+// const data = await redis.get('foo');
+
+
+
 
 // import Redis from 'ioredis';
 // const redis = new Redis({
@@ -36,5 +41,5 @@ testConnection();
 //   password: process.env.UPSTASH_REDIS_REST_TOKEN, // From Upstash dashboard
 // });
 
-const redis: Redis | null = client;
+
 export default redis;
